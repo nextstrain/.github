@@ -25,13 +25,11 @@ _If you're new to Github, check out [this awesome list of resources](https://git
 
 ## Development details
 
-If you've found a bug you want to fix or a feature you'd like to implement on [our project boards](https://github.com/orgs/nextstrain/projects), we are happy to accept your code!
-
 Please see `DEV_DOCS.md` in the relevant repository for guidance on how to set up your dev environment, etc. 
 
 We use Python for back-end components and loosely follow [the PEP 8 standard](https://www.python.org/dev/peps/pep-0008/). We use Javascript for front-end components and use [eslint](https://eslint.org/) to enforce [a custom set of linting rules](https://github.com/nextstrain/auspice/blob/master/.eslintrc).
 
-# Help improve Nextstrain's software without code  
+# Improve Nextstrain's software without code  
 
 ## Report a bug
 
@@ -60,7 +58,7 @@ These are all great opportunities for you to help improve our documentation. Fin
   - [augur](https://github.com/nextstrain/augur/#documentation)
 
 
-# Contribute science
+# Contribute science & communications  
 
 Nextstrain is more than the software used to build and visualize data on nextstrain.org. We rely on contributions from other scientists including data, scientific interpretation of results, and language translations of situation reports, user interfaces, and documentation. 
 
