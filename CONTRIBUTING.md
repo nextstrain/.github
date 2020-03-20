@@ -9,10 +9,10 @@ We particularly encourage contributors from underrepresented backgrounds to enga
 Nextstrain comprises [multiple interconnected software components](https://github.com/nextstrain/). Below is a list of Nextstrain’s primary components with links to their active issues.
 
 - [nextstrain.org](https://github.com/nextstrain/nextstrain.org/issues): static content and documentation for the nextstrain.org website
-- [auspice](https://github.com/nextstrain/auspice/issues): front-end visualization application 
-- [augur](https://github.com/nextstrain/augur/issues): back-end bioinformatics tools 
-- [cli](https://github.com/nextstrain/cli/issues): unified command-line interface for analyzing and visualizing data 
-- [ncov](https://github.com/nextstrain/ncov/issues): hCoV-19 data analysis pipeline 
+- [auspice](https://github.com/nextstrain/auspice/issues): front-end visualization application
+- [augur](https://github.com/nextstrain/augur/issues): back-end bioinformatics tools
+- [cli](https://github.com/nextstrain/cli/issues): unified command-line interface for analyzing and visualizing data
+- [ncov](https://github.com/nextstrain/ncov/issues): hCoV-19 data analysis pipeline
 
 ### Quick start
 
@@ -26,7 +26,7 @@ _If you're new to Github, check out [this awesome list of resources](https://git
 
 ### Development details
 
-Please see `DEV_DOCS.md` in the relevant repository for guidance on how to set up your dev environment, etc. 
+Please see `DEV_DOCS.md` in the relevant repository for guidance on how to set up your dev environment, etc.
 
 We use Python for back-end components and loosely follow [the PEP 8 standard](https://www.python.org/dev/peps/pep-0008/). We use Javascript for front-end components and use [eslint](https://eslint.org/) to enforce [a custom set of linting rules](https://github.com/nextstrain/auspice/blob/master/.eslintrc).
 
@@ -60,11 +60,11 @@ These are all great opportunities for you to help improve our documentation. Fin
 
 ## Contribute science & communications
 
-Nextstrain is more than the software used to build and visualize data on nextstrain.org. We rely on contributions from other scientists including data, scientific interpretation of results, and language translations of situation reports, user interfaces, and documentation. 
+Nextstrain is more than the software used to build and visualize data on nextstrain.org. We rely on contributions from other scientists including data, scientific interpretation of results, and language translations of situation reports, user interfaces, and documentation.
 
 ### Submitting data
 
-Please refer to the [pathogen-specific repository](https://github.com/nextstrain) for information about where data is being sourced from. For example, the SARS-CoV-2 data is being pulled from GISAID; we'll pick up any new sequence data submitted there and include it in our next public build. 
+Please refer to the [pathogen-specific repository](https://github.com/nextstrain) for information about where data is being sourced from. For example, the SARS-CoV-2 data is being pulled from GISAID; we'll pick up any new sequence data submitted there and include it in our next public build.
 
 Alternatively, you may be interested in making your own [community build](https://nextstrain.org/docs/contributing/community-builds) for your specific dataset.
 
