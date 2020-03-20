@@ -26,7 +26,7 @@ _If you're new to Github, check out [this awesome list of resources](https://git
 
 ### Development details
 
-Please see `DEV_DOCS.md` in the relevant repository for guidance on how to set up your dev environment, etc.
+See `DEV_DOCS.md` in the relevant repository for guidance on how to set up your development environment.
 
 We use Python for back-end components and loosely follow [the PEP 8 standard](https://www.python.org/dev/peps/pep-0008/). We use Javascript for front-end components and use [eslint](https://eslint.org/) to enforce [a custom set of linting rules](https://github.com/nextstrain/auspice/blob/master/.eslintrc).
 
