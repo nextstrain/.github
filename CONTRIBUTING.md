@@ -35,7 +35,7 @@ We use Python for back-end components and loosely follow [the PEP 8 standard](ht
 
 If you think you’ve found a bug in a component of Nextstrain, [first search for an existing bug report across all issues in the organization](https://github.com/search?q=org%3Anextstrain&state=open&type=Issues).
 
-![](https://i.imgur.com/fAJEFWH.png)
+![](images/example-search-for-bug.png)
 
 If you find an existing bug report, add a description of your experience to that issue.
 
