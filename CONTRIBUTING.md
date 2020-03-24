@@ -74,4 +74,4 @@ Nextstrain Narratives allow scientists to easily share text linked to correspond
 
 ### Foreign language translations
 
-Please see [this project board](https://github.com/nextstrain/ncov/projects/1) for more information about how to help with foreign language translations.
+Please see [out getting started guide](https://github.com/nextstrain/ncov/blob/master/TRANSLATION_DOCS.md) for more information about how to help with foreign language translations.
