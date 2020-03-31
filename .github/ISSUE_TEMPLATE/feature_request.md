@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Want us to add a feature to Nextstrain?
-title: "[Feature request]"
+title: ""
 labels: enhancement
 assignees: ''
 
