@@ -2,7 +2,7 @@
 What is the goal of this pull request? What does this pull request change?
 
 ### Related issue(s)  
-<!-- Start typing the name of a related issue and github will autosuggest the issue number for you -->
+<!-- Start typing the name of a related issue and GitHub will auto-suggest the issue number for you.  -->
 Fixes #  
 Related to #  
 
