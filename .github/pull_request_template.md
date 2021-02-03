@@ -10,4 +10,4 @@ Related to #
 What steps should be taken to test the changes you've proposed?  
 If you added or changed behavior in the codebase, did you update the tests, or do you need help with this?  
 
-<!-- Thank you for contributing to Nextstrain! -->
+<!-- 🙌 Thank you for contributing to Nextstrain! ✨ -->
