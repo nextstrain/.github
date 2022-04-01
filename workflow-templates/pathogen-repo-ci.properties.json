@@ -1,0 +1,8 @@
+{
+  "name": "CI for pathogen repos",
+  "description": "Basic CI workflow for repos housing Nextstrain pathogen builds",
+  "filePatterns": [
+    "^Snakefile$",
+    "^example_data$"
+  ]
+}

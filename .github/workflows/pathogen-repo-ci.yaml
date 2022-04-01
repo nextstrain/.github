@@ -1,0 +1,38 @@
+# This workflow is intended to be called by workflows in our various pathogen
+# build repos.  See workflow-templates/pathogen-repo-ci.yaml (a "starter"
+# workflow) in this repo for an example of what the caller workflow looks like.
+name: CI
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v3
+        with:
+          # Consider parameterizing the Python version. -trs, 1 April 2022
+          python-version: "3.7"
+
+      - run: python3 -m pip install --upgrade pip setuptools wheel
+      - run: python3 -m pip install nextstrain-cli
+      - run: nextstrain version
+      - run: nextstrain check-setup
+      - run: nextstrain update
+
+      # Consider conditionalizing the copy from example_data/ on its existence
+      # and assume that if it's missing the calling workflow will setup any
+      # data appropriately first.  Update filePatterns in
+      # workflow-templates/pathogen-repo-ci.properties.json if we do.
+      #   -trs, 1 April 2022
+      - name: Copy example data
+        run: |
+          mkdir -p data/
+          cp -v example_data/* data/
+
+      # Consider parameterizing additional arguments here in the future to
+      # support more complex CI builds.
+      #   -trs, 1 April 2022
+      - run: nextstrain build --docker .
