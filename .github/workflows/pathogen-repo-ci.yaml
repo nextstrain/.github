@@ -5,6 +5,14 @@ name: CI
 
 on:
   workflow_call:
+    inputs:
+      build-args:
+        description: >-
+          Additional command-line arguments to pass to `nextstrain build` after
+          the build directory (e.g. to Snakemake).
+        type: string
+        default: ""
+        required: false
 
 jobs:
   build:
@@ -32,7 +40,4 @@ jobs:
           mkdir -p data/
           cp -v example_data/* data/
 
-      # Consider parameterizing additional arguments here in the future to
-      # support more complex CI builds.
-      #   -trs, 1 April 2022
-      - run: nextstrain build --docker .
+      - run: nextstrain build --docker . ${{ inputs.build-args }}
