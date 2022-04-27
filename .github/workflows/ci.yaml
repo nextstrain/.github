@@ -1,0 +1,12 @@
+name: CI
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  test-actions/setup-nextstrain-cli:
+    name: test: actions/setup-nextstrain-cli
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./actions/setup-nextstrain-cli
