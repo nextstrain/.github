@@ -1,0 +1,53 @@
+name: Setup Nextstrain CLI
+description: >-
+  This GitHub Actions action is intended to be called by workflows in our other
+  repos when they need a working copy of the Nextstrain CLI (the `nextstrain`
+  program) installed and don't particularly care about the exact Python
+  environment in which its installed.
+  
+  For example, this is typically the case when the workflow's primary step
+  invokes `nextstrain build` to run a build in a container runtime (locally via
+  Docker or remotely via AWS Batch).  Workflows that are more complex (e.g.
+  have additional dependencies to install, care about Conda, etc.) should
+  probably continue to install the Nextstrain CLI themselves for now.
+
+inputs:
+  cli-version:
+    description: >-
+      Version of Nextstrain CLI to install, as a dependency version spec
+      understood by Pip (i.e. conforming to PEP-0508, e.g. >3.2 or ==3.2.4).
+      Defaults to none, which means the latest version available will be
+      installed.
+    type: string
+    default: ""
+    required: false
+
+  python-version:
+    description: >-
+      Version of Python to use for Nextstrain CLI, as a string understood by
+      actions/setup-python.  Defaults to "3.9".
+    type: string
+    default: "3.9"
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v3
+      with:
+        python-version: "${{ inputs.python-version }}"
+
+    - run: python3 -m pip install --upgrade pip setuptools wheel
+      shell: bash
+
+    - run: python3 -m pip install --upgrade nextstrain-cli'${{ inputs.cli-version }}'
+      shell: bash
+
+    - run: nextstrain version
+      shell: bash
+
+    - run: nextstrain check-setup
+      shell: bash
+
+    - run: nextstrain update
+      shell: bash
