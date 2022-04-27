@@ -30,16 +30,31 @@ jobs:
         with:
           repository: ${{ inputs.repo }}
 
-      - uses: actions/setup-python@v3
+      # XXX TODO: It would be better for this to call setup-nextstrain-cli
+      # using the same ref that this workflow was called with (e.g. if this
+      # workflow was invoked by the caller workflow with @foo than we invoke
+      # the action with @foo too), but it's not currently possible to figure
+      # out that ref.  See discussion around this (including results of some
+      # investigation I did):
+      #
+      #   - https://github.community/t/reusable-workflows-get-the-ref-inside-the-called-workflow/224109
+      #   - https://github.community/t/ref-head-in-reusable-workflows/203690/92
+      #
+      # Once we can figure out that ref, then we can actions/checkout our
+      # nextstrain/.github repo at that ref as a sidecar path somewhere and
+      # then invoke the setup-nextstrain-cli action using a local file path
+      # instead of a remote owner/repo path.  This separate checkout will be
+      # necessary since the "uses:" key can't be interpolated (${{…}}) with
+      # context vars.
+      #
+      # For now, update the hardcoded ref (e.g. @90af34…) below when you make
+      # future changes to setup-nextstrain-cli.
+      #
+      #   -trs, 28 April 2022
+      - uses: nextstrain/.github/actions/setup-nextstrain-cli@90af34a2feb76db3feb337b03faf1ae158fd5042
         with:
           # Consider parameterizing the Python version. -trs, 1 April 2022
           python-version: "3.7"
-
-      - run: python3 -m pip install --upgrade pip setuptools wheel
-      - run: python3 -m pip install nextstrain-cli
-      - run: nextstrain version
-      - run: nextstrain check-setup
-      - run: nextstrain update
 
       - name: Copy example data
         run: |
