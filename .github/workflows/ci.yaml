@@ -5,9 +5,14 @@ on:
   - pull_request
 
 jobs:
-  test:
+  test-setup-nextstrain-cli:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: ./actions/setup-nextstrain-cli
       - run: nextstrain version --verbose
+
+  test-pathogen-repo-ci:
+    uses: ./.github/workflows/pathogen-repo-ci.yaml
+    with:
+      repo: nextstrain/zika
