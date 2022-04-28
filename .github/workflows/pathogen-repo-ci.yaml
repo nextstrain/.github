@@ -14,11 +14,22 @@ on:
         default: ""
         required: false
 
+      repo:
+        description: >-
+          Repository name with owner (e.g. nextstrain/zika).  Defaults to the
+          repository of the caller workflow.
+        type: string
+        default: ${{ github.repository }}
+        required: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repo }}
+
       - uses: actions/setup-python@v3
         with:
           # Consider parameterizing the Python version. -trs, 1 April 2022
@@ -30,14 +41,13 @@ jobs:
       - run: nextstrain check-setup
       - run: nextstrain update
 
-      # Consider conditionalizing the copy from example_data/ on its existence
-      # and assume that if it's missing the calling workflow will setup any
-      # data appropriately first.  Update filePatterns in
-      # workflow-templates/pathogen-repo-ci.properties.json if we do.
-      #   -trs, 1 April 2022
       - name: Copy example data
         run: |
-          mkdir -p data/
-          cp -v example_data/* data/
+          if [[ -d example_data ]]; then
+            mkdir -p data/
+            cp -v example_data/* data/
+          else
+            echo No example data to copy.
+          fi
 
       - run: nextstrain build --docker . ${{ inputs.build-args }}
