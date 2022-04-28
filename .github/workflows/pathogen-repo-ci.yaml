@@ -41,14 +41,13 @@ jobs:
       - run: nextstrain check-setup
       - run: nextstrain update
 
-      # Consider conditionalizing the copy from example_data/ on its existence
-      # and assume that if it's missing the calling workflow will setup any
-      # data appropriately first.  Update filePatterns in
-      # workflow-templates/pathogen-repo-ci.properties.json if we do.
-      #   -trs, 1 April 2022
       - name: Copy example data
         run: |
-          mkdir -p data/
-          cp -v example_data/* data/
+          if [[ -d example_data ]]; then
+            mkdir -p data/
+            cp -v example_data/* data/
+          else
+            echo No example data to copy.
+          fi
 
       - run: nextstrain build --docker . ${{ inputs.build-args }}
