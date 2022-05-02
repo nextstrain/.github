@@ -66,3 +66,13 @@ jobs:
           fi
 
       - run: nextstrain build --docker . ${{ inputs.build-args }}
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: outputs
+          path: |
+            auspice/
+            results/
+            benchmarks/
+            logs/
+            .snakemake/log/
