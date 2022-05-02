@@ -73,4 +73,6 @@ jobs:
           path: |
             auspice/
             results/
+            benchmarks/
+            logs/
             .snakemake/log/
