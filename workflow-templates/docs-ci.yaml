@@ -1,0 +1,9 @@
+name: Sphinx docs CI
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  ci:
+    uses: nextstrain/.github/.github/workflows/docs-ci.yaml@master
