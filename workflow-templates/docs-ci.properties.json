@@ -1,0 +1,4 @@
+{
+  "name": "CI for Sphinx docs",
+  "description": "Basic CI workflow for repos containing a Sphinx documentation project"
+}
