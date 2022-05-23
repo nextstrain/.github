@@ -33,6 +33,10 @@ on:
               env: |
                 FOO: bar
                 I_CANT_BELIEVE: "it's not YAML"
+                would_you_believe: |
+                  it's
+                  not
+                  yaml
 
           Do not use for secrets!  Instead, pass them via GitHub Action's
           dedicated secrets mechanism.
@@ -44,6 +48,44 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Transforms the inputs.env *string* containing YAML like this:
+      #
+      #   FOO: bar
+      #   I_CANT_BELIEVE: "it's not YAML"
+      #   would_you_believe: |
+      #     it's
+      #     not
+      #     yaml
+      #
+      # first into the equivalent JSON (with yq) and then into text (with jq)
+      # like this:
+      #
+      #   FOO=<<__EOF__
+      #   bar
+      #   __EOF__
+      #   I_CANT_BELIEVE<<__EOF__
+      #   it's not YAML
+      #   __EOF__
+      #   would_you_believe<<__EOF__
+      #   it's
+      #   not
+      #   yaml
+      #   __EOF__
+      #
+      # which is suitable for appending to the $GITHUB_ENV file in order to set
+      # the environment variables for subsequent steps.
+      #
+      # See the GitHub docs for more info on this heredoc-like syntax¹, which I
+      # use here to avoid quoting issues in arbitrary env var values.
+      #
+      # By doing this slightly-convoluted conversion here, callers can use the
+      # familiar env: block syntax almost without change and avoid paying much
+      # in accidental complexity.  We box it up here and let callers focus on
+      # their essential complexity.
+      #   -trs, 23 May 2022
+      #
+      # ¹ https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
+      #
       - if: inputs.env
         name: Set environment variables
         env:
