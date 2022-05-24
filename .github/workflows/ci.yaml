@@ -22,3 +22,9 @@ jobs:
     uses: ./.github/workflows/pathogen-repo-ci.yaml
     with:
       repo: nextstrain/zika-tutorial
+
+  test-readme:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: ./devel/check-readme
