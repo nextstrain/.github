@@ -1,0 +1,53 @@
+#!/bin/bash
+# Check that the README links to all files of interest; a heuristic for keeping
+# us honest about documenting the contents of this repo.
+set -euo pipefail
+
+delim=$'\x1f' # ASCII unit separator
+
+main() {
+    compare | report
+}
+
+compare() {
+    comm --output-delimiter="$delim" \
+        <(files-of-interest | sort) \
+        <(relative-links README.md | sort)
+}
+
+report() {
+    local failed=0
+
+    while IFS="$delim" read -r missing unknown found; do
+        if [[ -n $missing ]]; then
+            echo "missing link to: $missing" >&2
+            : $((failed++))
+
+        elif [[ -n $unknown ]]; then
+            echo "link to unknown file: $unknown" >&2
+            : $((failed++))
+
+        elif [[ -n $found ]]; then
+            echo "found: $found"
+        fi
+    done
+
+    return "$failed"
+}
+
+files-of-interest() {
+    git ls-files | grep -vxFf <(files-to-ignore)
+}
+
+files-to-ignore() {
+    git ls-files \
+        README.md \
+        devel/check-readme \
+        'images/*'
+}
+
+relative-links() {
+    grep -oP '\[.+?\]\(.+?\)' "$@" | grep -oP '(?<=\()(?!(https?|mailto)://).+?(?=\))'
+}
+
+main "$@"
