@@ -7,7 +7,17 @@ Fixes #
 Related to #
 
 ### Testing
-What steps should be taken to test the changes you've proposed?
-If you added or changed behavior in the codebase, did you update the tests, or do you need help with this?
+
+<!--
+Make sure checks are successful at the bottom of the PR.
+
+If applicable, add:
+- any changes to existing tests
+- any additional manual testing to confirm changes
+
+Please add a note if you need help with adding tests.
+-->
+
+- [ ] Checks pass
 
 <!-- 🙌 Thank you for contributing to Nextstrain! ✨ -->
