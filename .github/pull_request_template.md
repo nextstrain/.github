@@ -2,9 +2,13 @@
 What is the goal of this pull request? What does this pull request change?
 
 ### Related issue(s)
-<!-- Start typing the name of a related issue and GitHub will auto-suggest the issue number for you.  -->
-Fixes #
-Related to #
+
+<!--
+Link any related issues here. Use GitHub's special keywords if appropriate¹.
+Type `#` followed the name of an issue and GitHub will auto-suggest the issue number for you.
+
+¹ https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests
+-->
 
 ### Testing
 
