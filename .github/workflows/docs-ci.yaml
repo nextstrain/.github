@@ -23,9 +23,15 @@ on:
 
       environment-file:
         description: >-
-          Path to conda environment file (e.g. docs/conda.yml)
+          Path to conda environment file. (e.g. docs/conda.yml)
         type: string
-        required: true
+        required: false
+
+      pip-install-target:
+        description: >-
+          Pip install target. (e.g. local directory which contains setup.py, project URL)
+        type: string
+        required: false
 
       make-target:
         description: >-
@@ -33,8 +39,17 @@ on:
         type: string
         default: html
 
+env:
+  # Used for `make` steps.
+  # -n: warn on missing references
+  # -W: error on warnings
+  # --keep-going: find all warnings
+  # https://www.sphinx-doc.org/en/master/man/sphinx-build.html
+  SPHINXOPTS: -n -W --keep-going
+
 jobs:
-  build:
+  build-conda:
+    if: inputs.environment-file != ''
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -52,9 +67,18 @@ jobs:
 
       - run: make ${{ inputs.make-target }}
         working-directory: ${{ inputs.docs-directory }}
-        env:
-          # https://www.sphinx-doc.org/en/master/man/sphinx-build.html
-          # -n: warn on missing references
-          # -W: error on warnings
-          # --keep-going: find all warnings
-          SPHINXOPTS: -n -W --keep-going
+
+  build-pip:
+    if: inputs.pip-install-target != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repo }}
+
+      - run: pip install '${{ inputs.pip-install-target }}'
+
+      - run: pip list
+
+      - run: make ${{ inputs.make-target }}
+        working-directory: ${{ inputs.docs-directory }}
