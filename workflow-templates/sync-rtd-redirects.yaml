@@ -1,0 +1,41 @@
+# HEADS UP
+#
+# When adopting this workflow, make sure to generate an initial redirects.yaml
+# (or equivalent) file from the project's existing redirects on RTD, or they'll
+# be deleted upon first sync!
+#
+# You can generate an appropriate file (may require minor tweaking) with, e.g.:
+#
+#     rtd --json projects nextstrain-cli redirects \
+#       | yq -y 'map({type, from_url, to_url})' \
+#       > redirects.yaml
+#
+# Then test with a dry run that this is a no-op when synced, e.g.:
+#
+#     rtd projects nextstrain-cli redirects sync --dry-run -f redirects.yaml
+#
+# Make sure to replace "nextstrain-cli" with the correct project name instead
+# and adjust the file path as appropriate.
+
+name: Sync RTD redirects
+
+on:
+  push:
+    branches:
+      - $default-branch
+    paths:
+      - doc/redirects.yaml
+      - .github/workflows/sync-rtd-redirects.yaml
+
+  # Manually triggered using GitHub's UI
+  workflow_dispatch:
+
+jobs:
+  sync:
+    name: rtd redirects
+    uses: nextstrain/.github/.github/workflows/sync-rtd-redirects.yaml@master
+    with:
+      project: nextstrain-cli
+      file: doc/redirects.yaml
+    secrets:
+      RTD_TOKEN: ${{ secrets.RTD_TOKEN }}

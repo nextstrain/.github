@@ -1,0 +1,46 @@
+# This workflow is intended to be called by workflows in our various software
+# repos that use Read the Docs for Sphinx documentation hosting.
+#
+# See workflow-templates/sync-rtd-redirects.yaml (a "starter" workflow) in this
+# repo for an example of what the caller workflow looks like.
+
+name: Sync RTD redirects
+
+on:
+  workflow_call:
+    inputs:
+      project:
+        description: >-
+          Name of the RTD project
+        type: string
+        required: true
+
+      file:
+        description: >-
+          Path to the YAML file defining RTD redirects (e.g. doc/redirects.yaml)
+        type: string
+        required: true
+
+    secrets:
+      RTD_TOKEN:
+        description: >-
+          RTD API token with permissions to manage the project
+        required: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+
+      - name: Upgrade Python toolchain
+        run: python3 -m pip install --upgrade pip setuptools wheel
+
+      - name: Install readthedocs-cli
+        run: python3 -m pip install readthedocs-cli
+
+      - name: Sync redirects
+        run: rtd projects "${{ inputs.project }}" redirects sync -f "${{ inputs.file }}" --wet-run
+        env:
+          RTD_TOKEN: ${{ secrets.RTD_TOKEN }}
