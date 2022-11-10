@@ -40,7 +40,15 @@ jobs:
       - name: Install readthedocs-cli
         run: python3 -m pip install readthedocs-cli
 
-      - name: Sync redirects
+      - if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+        id: wet-run
+        name: Sync redirects
         run: rtd projects "${{ inputs.project }}" redirects sync -f "${{ inputs.file }}" --wet-run
+        env:
+          RTD_TOKEN: ${{ secrets.RTD_TOKEN }}
+
+      - if: steps.wet-run.conclusion == 'skipped'
+        name: Sync redirects (DRY RUN)
+        run: rtd projects "${{ inputs.project }}" redirects sync -f "${{ inputs.file }}" --dry-run
         env:
           RTD_TOKEN: ${{ secrets.RTD_TOKEN }}

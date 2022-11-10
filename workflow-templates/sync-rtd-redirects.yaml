@@ -27,6 +27,11 @@ on:
       - doc/redirects.yaml
       - .github/workflows/sync-rtd-redirects.yaml
 
+  # The reusable workflow will only actually make changes when running on the
+  # default branch (e.g. refs/heads/main); every other run will be a dry run.
+  # If you don't want dry runs on PRs, then remove this trigger.
+  pull_request:
+
   # Manually triggered using GitHub's UI
   workflow_dispatch:
 
