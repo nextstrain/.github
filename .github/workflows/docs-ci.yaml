@@ -32,16 +32,19 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
-    - uses: actions/checkout@v3
-    - uses: conda-incubator/setup-miniconda@v2
-      with:
-        environment-file: ${{ inputs.environment-file }}
-    - run: conda list
-    - run: make ${{ inputs.make-target }}
-      working-directory: ${{ inputs.docs-directory }}
-      env:
-        # https://www.sphinx-doc.org/en/master/man/sphinx-build.html
-        # -n: warn on missing references
-        # -W: error on warnings
-        # --keep-going: find all warnings
-        SPHINXOPTS: -n -W --keep-going
+      - uses: actions/checkout@v3
+
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: ${{ inputs.environment-file }}
+
+      - run: conda list
+
+      - run: make ${{ inputs.make-target }}
+        working-directory: ${{ inputs.docs-directory }}
+        env:
+          # https://www.sphinx-doc.org/en/master/man/sphinx-build.html
+          # -n: warn on missing references
+          # -W: error on warnings
+          # --keep-going: find all warnings
+          SPHINXOPTS: -n -W --keep-going
