@@ -23,6 +23,13 @@ jobs:
     with:
       repo: nextstrain/zika-tutorial
 
+  test-docs-ci:
+    uses: ./.github/workflows/docs-ci.yaml
+    with:
+      repo: nextstrain/docs.nextstrain.org
+      docs-directory: .
+      environment-file: environment.yml
+
   test-readme:
     runs-on: ubuntu-latest
     steps:
