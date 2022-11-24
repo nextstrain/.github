@@ -44,6 +44,9 @@ Invoked by other repos.
 - CI for docs
   ([workflow](.github/workflows/docs-ci.yaml))
 
+- Sync RTD redirects
+  ([workflow](.github/workflows/sync-rtd-redirects.yaml))
+
 See also GitHub's [documentation on reusing workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
 
 
@@ -60,6 +63,10 @@ Used to setup other repos.
 - CI for docs
   ([template](workflow-templates/docs-ci.yaml),
   [properties](workflow-templates/docs-ci.properties.json))
+
+- Sync RTD redirects
+  ([template](workflow-templates/sync-rtd-redirects.yaml),
+  [properties](workflow-templates/sync-rtd-redirects.properties.json))
 
 See also GitHub's [documentation on starter workflows](https://docs.github.com/en/actions/using-workflows/creating-starter-workflows-for-your-organization).
 

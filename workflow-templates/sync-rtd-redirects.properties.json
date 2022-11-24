@@ -1,0 +1,4 @@
+{
+  "name": "Sync RTD redirects",
+  "description": "Sync a repository file of redirects with a Read the Docs project"
+}
