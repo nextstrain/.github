@@ -29,6 +29,7 @@ on:
 
 jobs:
   sync:
+    if: secrets.RTD_TOKEN != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
