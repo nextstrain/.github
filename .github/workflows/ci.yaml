@@ -23,12 +23,19 @@ jobs:
     with:
       repo: nextstrain/zika-tutorial
 
-  test-docs-ci:
+  test-docs-ci-conda:
     uses: ./.github/workflows/docs-ci.yaml
     with:
       repo: nextstrain/docs.nextstrain.org
       docs-directory: .
       environment-file: environment.yml
+
+  test-docs-ci-pip:
+    uses: ./.github/workflows/docs-ci.yaml
+    with:
+      repo: nextstrain/augur
+      docs-directory: docs/
+      pip-install-target: .[dev]
 
   test-readme:
     runs-on: ubuntu-latest
