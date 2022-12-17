@@ -1,0 +1,61 @@
+name: Setup SSH
+description: >-
+  Sets up SSH access to the current runner machine over a Tailscale network.
+
+  Authentication uses the public SSH keys associated with GitHub users.  By
+  default, the users who triggered the initial and current workflow runs are
+  allowed.
+
+inputs:
+  tailscale-auth-key:
+    description: >-
+      Tailscale auth key (i.e. from the admin panel); highly recommended to be
+      ephemeral! Otherwise a runner will stick around and your Tailscale
+      machine limit will be quickly reached.
+    required: true
+
+  allowed-users:
+    description: >-
+      Comma-separated list of GitHub usernames who are allowed access via their
+      public SSH keys.
+    required: false
+    default: "${{ github.triggering_actor }},${{ github.actor }}"
+
+  wait-for-continue:
+    description: >-
+      Wait for a ~/continue file to appear before returning to the calling
+      workflow.
+    required: false
+    default: false
+
+runs:
+  using: composite
+  steps:
+    - name: Setup SSH
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        # Setup SSH
+        echo "::group::Debug info"
+          ./debug-info
+        echo "::endgroup::"
+
+        echo "::group::Install Tailscale"
+          curl -fsSL --proto '=https' https://tailscale.com/install.sh | sudo bash
+        echo "::endgroup::"
+
+        echo "::group::Setup Tailscale"
+          ./setup-tailscale "${{ inputs.tailscale-auth-key }}"
+        echo "::endgroup::"
+
+        echo "::group::Setup SSH keys"
+          ./setup-keys "${{ inputs.allowed-users }}"
+        echo "::endgroup::"
+
+        ./connection-info
+
+    - if: inputs.wait-for-continue
+      name: Waiting for ~/continue to appear…
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: ./wait-for-continue

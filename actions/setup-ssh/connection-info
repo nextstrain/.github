@@ -1,0 +1,6 @@
+#!/bin/bash
+echo "SSH ready!  Connect with:"
+echo
+for ip in $(tailscale ip); do
+  echo "    ssh runner@$ip"
+done

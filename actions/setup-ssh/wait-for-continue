@@ -1,0 +1,7 @@
+#!/bin/bash
+set -euo pipefail
+
+echo "Waiting for ~/continue to appear…"
+while [[ ! -e ~/continue ]]; do
+    sleep 15
+done

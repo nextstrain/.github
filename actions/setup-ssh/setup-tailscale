@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+set -x
+
+if [[ -z "${1:-}" ]]; then
+    echo "Tailscale auth key is required" >&2
+    exit 1
+fi
+
+sudo tailscale up \
+  --authkey "$1" \
+  --hostname "github-runner-$(< /etc/hostname)"

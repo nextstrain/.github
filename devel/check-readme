@@ -2,6 +2,7 @@
 # Check that the README links to all files of interest; a heuristic for keeping
 # us honest about documenting the contents of this repo.
 set -euo pipefail
+shopt -s extglob
 
 delim=$'\x1f' # ASCII unit separator
 
@@ -43,7 +44,8 @@ files-to-ignore() {
     git ls-files \
         README.md \
         devel/check-readme \
-        'images/*'
+        'images/*' \
+        actions/setup-ssh/!(*.yaml)
 }
 
 relative-links() {
