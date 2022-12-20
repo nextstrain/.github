@@ -69,6 +69,11 @@ Used to setup other repos.
   ([template](workflow-templates/sync-rtd-redirects.yaml),
   [properties](workflow-templates/sync-rtd-redirects.properties.json))
 
+- Debugging runner: Launch a runner for ad-hoc interactive debugging over SSH using `setup-ssh` above.
+  Only for use in private repositories!
+  ([template](workflow-templates/debugging-runner.yaml),
+  [properties](workflow-templates/debugging-runner.properties.json))
+
 See also GitHub's [documentation on starter workflows](https://docs.github.com/en/actions/using-workflows/creating-starter-workflows-for-your-organization).
 
 
