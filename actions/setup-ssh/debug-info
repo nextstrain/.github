@@ -1,0 +1,5 @@
+#!/bin/bash
+set -x
+ip addr
+ip route
+sudo ss -ntulp

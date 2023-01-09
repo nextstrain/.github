@@ -1,0 +1,39 @@
+name: Debugging runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      tailscale-auth-key:
+        description: >-
+          Tailscale auth key to override any TAILSCALE_AUTH_KEY secret; good
+          for single-use, ephemeral auth keys.
+
+          As a non-secret input, this key is vulnerable to a timing attack!
+          Someone who can observe the dispatched workflow run's inputs and use
+          the auth key before the workflow can will be able to join your
+          tailnet.  As such, it's recommended that you only use this workflow
+          in private repos where all users are trusted.
+        type: string
+        required: false
+        default: ""
+
+      allowed-users:
+        description: >-
+          Comma-separated list of GitHub usernames who are allowed access via their
+          public SSH keys.  Defaults to the user who triggers the workflow run.
+        type: string
+        required: false
+        default: ""
+
+jobs:
+  ssh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      # XXX TODO: change to @master once the actions/setup-ssh branch is merged
+      - uses: nextstrain/.github/actions/setup-ssh@actions/setup-ssh
+        with:
+          tailscale-auth-key: ${{ inputs.tailscale-auth-key || secrets.TAILSCALE_AUTH_KEY }}
+          allowed-users: ${{ inputs.allowed-users || github.triggering_actor }}
+          wait-for-continue: true

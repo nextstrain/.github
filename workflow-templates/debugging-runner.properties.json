@@ -1,0 +1,4 @@
+{
+  "name": "Debugging runner",
+  "description": "Launch a runner for ad-hoc interactive debugging over SSH using our setup-ssh action. Only for use in private repositories!"
+}

@@ -1,0 +1,20 @@
+#!/bin/bash
+set -euo pipefail
+set -x
+
+if [[ -z "${1:-}" ]]; then
+    echo "Tailscale auth key is required" >&2
+    exit 1
+fi
+
+# Restart tailscaled in ephemeral-only mode.  Not required, but nice because it
+# then performs an automatic logout and immediate device removal when it exits,
+# regardless of if the auth key is ephemeral or not.
+#
+# https://tailscale.com/kb/1111/ephemeral-nodes/#can-i-create-an-ephemeral-node-without-an-auth-key
+sudo tee -a /etc/default/tailscaled <<<'FLAGS="--state=mem:"'
+sudo systemctl restart tailscaled
+
+sudo tailscale up \
+  --authkey "$1" \
+  --hostname "github-runner-$(< /etc/hostname)"

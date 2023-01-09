@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+set -x
+
+if [[ -z "${1:-}" ]]; then
+    echo "Allowed users are required" >&2
+    exit 1
+fi
+
+mkdir -p ~/.ssh/
+curl -fsSL --proto '=https' "https://github.com/{$1}.keys" \
+    | tee ~/.ssh/authorized_keys
