@@ -1,0 +1,33 @@
+name: Setup debugger
+description: >-
+  Sets up an interactive debugger for a job, with SSH access to the current
+  runner machine over a Tailscale network.
+
+  Authentication uses the public SSH keys associated with GitHub users.  By
+  default, the users who triggered the initial and current workflow runs are
+  allowed.
+
+inputs:
+  tailscale-auth-key:
+    description: >-
+      Tailscale auth key (i.e. from the admin panel); highly recommended to be
+      ephemeral! Otherwise a runner will stick around and your Tailscale
+      machine limit will be quickly reached.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Setup debugger
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        cp -v debugger ~/
+
+    # See .github/workflows/pathogen-repo-ci.yaml for why this is a static SHA
+    # which we update over time.
+    #   -trs, 20 Jan 2023
+    - uses: nextstrain/.github/actions/setup-ssh@0bfe8b836f609270c34ed7622960a67fb79cb330
+      with:
+        tailscale-auth-key: ${{ inputs.tailscale-auth-key }}
+        wait-for-continue: true
