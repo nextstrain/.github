@@ -31,7 +31,9 @@ Invoked by our GitHub Actions workflows, including the reusable workflows below.
 
 - [Setup Nextstrain CLI](actions/setup-nextstrain-cli/action.yaml)
 - [Setup SSH](actions/setup-ssh/action.yaml) access to runner machine
+  ([README](actions/setup-ssh/README.md))
 - [Setup debugger](actions/setup-debugger/action.yaml) for interactive debugging of workflow jobs
+  ([README](actions/setup-debugger/README.md))
 
 See also GitHub's [documentation on creating custom actions](https://docs.github.com/en/actions/creating-actions/about-custom-actions).
 
