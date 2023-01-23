@@ -45,7 +45,8 @@ files-to-ignore() {
         README.md \
         devel/check-readme \
         'images/*' \
-        actions/setup-ssh/!(*.yaml)
+        actions/setup-ssh/!(*.yaml) \
+        actions/setup-debugger/!(*.yaml)
 }
 
 relative-links() {

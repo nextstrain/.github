@@ -1,0 +1,272 @@
+#!/bin/bash
+set -euo pipefail
+
+if [[ "$EUID" -ne 0 ]]; then
+    echo "must be root; re-running with sudo…" >&2
+    exec sudo "$0" "$@"
+fi
+
+# This is limited to 15 characters.  The kernel's "comm" value reported by
+# bpftrace is the same as /proc/$pid/comm, which is a char[16]¹ by default.
+# This gives space for 15 characters + a terminating null byte.
+#
+# ¹ <https://www.kernel.org/doc/html/latest/filesystems/proc.html#proc-pid-comm-proc-pid-task-tid-comm>
+declare runner_comm=".NET ThreadPool"
+declare runner_uid="$(id --user "${RUNNER_USER:-$(id --real --user)}")"
+
+# Globals, for convenience, made explicit.  Managed by set-vars and
+# reset-vars.
+declare pid comm exe argv0 script
+declare -a args environ
+
+declare interceptor interceptor_pid
+
+main() {
+    echo "debugger started" >&2
+
+    trap cleanup EXIT
+
+    start-interceptor
+    <& $interceptor continue-workflow-when-ready
+
+    echo >&2
+    echo "waiting for execs… Ctrl-C at any time to quit." >&2
+    echo >&2
+
+    while <& $interceptor IFS=$'\x1f' read -r pid comm exe; do
+        echo -n "process $pid ($comm) exec of $exe "
+        set-vars
+
+        if should-interact; then
+            echo "[intercepted by debugger]" >> /proc/"$pid"/fd/2
+            interact
+        else
+            signal-continue &> /dev/null
+        fi
+
+        reset-vars
+    done
+}
+
+should-interact() {
+    # i.e. $(uuid -v4).sh
+    local gha_script_name='[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}[.]sh$'
+
+    local exe_basename script_basename
+    exe_basename="$(basename "$exe")"
+
+    if [[ "${#args[@]}" -gt 0 ]]; then
+        script_basename="$(basename "${args[-1]}")"
+    else
+        script_basename=""
+    fi
+
+    if ! [[ "$comm" == "$runner_comm" ]]; then
+        echo "[ignored: comm ${comm@Q} != ${runner_comm@Q}]"
+        return 1
+    fi
+
+    if ! [[ "$exe_basename" == bash ]]; then
+        echo "[ignored: exe basename ${exe_basename@Q} != 'bash']"
+        return 1
+    fi
+
+    if ! [[ "$script_basename" =~ $gha_script_name ]]; then
+        echo "[ignored: script (args[-1]) basename ${script_basename@Q} !~ $gha_script_name]"
+        return 1
+    fi
+
+    script="${args[-1]}"
+    echo "[stopped]"
+    return 0
+}
+
+interact() {
+    # REPL, with readline editing and (same session-only) history
+    echo "entering interactive mode (try the \"help\" command)" >&2
+    echo
+    local cmd params name value tmp
+    while read -e -r -p "> " cmd params; do
+        if [[ -n "$cmd" ]]; then
+            # Add command to history
+            history -s "$cmd $params"
+
+            case "$cmd" in
+                pid) echo "$pid";;
+                exe) echo "$exe";;
+                args) echo "${args[@]@Q}";;
+                argv) echo "${argv0@Q}" "${args[@]@Q}";;
+                argv0) echo "${argv0@Q}";;
+
+                env|environ)
+                    if [[ -z "${params:-}" ]]; then
+                        printf '%s\n' "${environ[@]}"
+                    elif [[ "$params" != *=* ]]; then
+                        printf '%s\n' "${environ[@]}" | grep --ignore-case --fixed-strings "$params" || true
+                    else
+                        # Prepend an "export NAME=VALUE" line to the process
+                        # script, since we can't modify its environ directly
+                        # without a debugger client embedded inside it.  (Hacks
+                        # with calling putenv(3) from GDB don't work in my
+                        # testing.)
+                        EDITOR="eval sed -ie '1i export '${params@Q}" \
+                            safe-edit "$script"
+                    fi
+                    ;;
+
+                script) cat "$script";;
+                edit) safe-edit "$script";;
+
+                w|write)
+                    local fd data
+                    read -r fd data <<<"$params"
+                    echo "$data" >> "/proc/$pid/fd/$fd" \
+                        || echo "write failed" >&2
+                    ;;
+
+                c|continue)
+                    signal-continue
+                    break;;
+                q|quit)
+                    exit;;
+
+                h|help)
+                    printf '%-20s %s\n' \
+                        pid "show process id" \
+                        exe "show process exe" \
+                        args "show process args" \
+                        argv "show process argv" \
+                        argv0 "show process argv[0]" \
+                        'env[iron]' "show process environment" \
+                        'env[iron] <str>' "show process environment containing <str>" \
+                        'env[iron] <k>=<v>' "set process environment var <k> to <v> in script" \
+                        "" "" \
+                        script "show script to be executed" \
+                        edit "edit script to be executed in \$EDITOR" \
+                        "" "" \
+                        'w[rite] <fd> <data>' "write <data> to process file descriptor <fd>" \
+                        "" "" \
+                        'c[ontinue]' "resume process execution and wait for next exec" \
+                        'q[uit]' "resume process execution and exit debugger" \
+                        "" "" \
+                        help "show this help"
+                    ;;
+                *) echo "unknown command: ${cmd@Q}" >&2
+            esac
+        fi
+    done
+    echo "leaving interactive mode" >&2
+    echo >&2
+}
+
+start-interceptor() {
+    echo "starting bpftrace interceptor" >&2
+    coproc interceptor
+    interceptor="$COPROC"
+    interceptor_pid="$COPROC_PID"
+}
+
+stop-interceptor() {
+    if [[ -n "${interceptor_pid:-}" ]]; then
+        echo "stopping bpftrace" >&2
+        kill "$interceptor_pid" || true
+    fi
+}
+
+interceptor() {
+    bpftrace -k --unsafe -e '
+        tracepoint:syscalls:sys_enter_execve* /uid == '"$runner_uid"' && comm == "'"$runner_comm"'"/ {
+            signal("SIGSTOP");
+            printf("%d\x1f%s\x1f%s\n", pid, comm, str(args->filename));
+        }
+    '
+}
+
+bpftrace() {
+    local bpftrace
+    bpftrace="$(dirname "$0")"/bpftrace
+
+    if ! [[ -x "$bpftrace" ]]; then
+        echo "bpftrace not found; downloading…" >&2
+        curl https://github.com/iovisor/bpftrace/releases/download/v0.16.0/bpftrace.xz \
+            --fail --silent --show-error --location --proto '=https' \
+            | xz -dc \
+            > "$bpftrace"
+        chmod +x "$bpftrace"
+    fi
+
+    exec "$bpftrace" "$@"
+}
+
+continue-workflow-when-ready() {
+    while read -r line; do
+        if [[ "$line" =~ ^Attaching\ [0-9]+\ probe ]]; then
+            echo "bpftrace ready; triggering workflow to continue" >&2
+
+            # See nextstrain/.github/actions/setup-ssh
+            if ! touch ~runner/continue; then
+                echo "unable to touch ~runner/continue; workflow may be stalled." >&2
+            fi
+
+            break
+        else
+            echo "ignoring unexpected output from bpftrace: $line" >&2
+        fi
+    done
+}
+
+set-vars() {
+    # Global vars not set here include:
+    #   - $pid, $comm, $exe set from bpftrace by interact(), above
+    #   - $script is set in should-interact() after a good pattern match
+
+    # Read argv from /proc.  Separate argv into argv0 and args for
+    # convenience; most folks won't care about argv0.
+    local -a argv
+    readarray -d $'\0' argv < /proc/"$pid"/cmdline
+    argv0="${argv[@]:0:1}"
+    args=("${argv[@]:1}")
+
+    # Read environment from /proc.
+    environ=()
+    readarray -d $'\0' environ < /proc/"$pid"/environ
+}
+
+reset-vars() {
+    pid=
+    comm=
+    exe=
+    argv0=
+    script=
+    args=()
+    environ=()
+}
+
+safe-edit() {
+    local file tmp
+    file="$1"
+    tmp="$(mktemp)"
+    cp "$file" "$tmp"
+    if (${EDITOR:-editor} "$tmp"); then
+        cp "$tmp" "$file"
+    else
+        echo "editor exited with error; discarding changes" >&2
+    fi
+    rm "$tmp" || true
+}
+
+signal-continue() {
+    if [[ -n "${pid:-}" ]]; then
+        echo "resuming process $pid" >&2
+        kill -CONT "$pid" || true
+    fi
+}
+
+cleanup() {
+    echo
+    signal-continue
+    stop-interceptor
+    echo "exiting" >&2
+}
+
+main "$@"
