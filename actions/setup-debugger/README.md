@@ -100,6 +100,7 @@ interactive debugging session so you can inspect the process state.  If it
 decides no, it resumes the process with `SIGCONT` and waits for another
 process.
 
+[bpftrace]: https://github.com/iovisor/bpftrace
 [`execve()`]: https://man7.org/linux/man-pages/man2/execve.2.html
 [`execveat()`]: https://man7.org/linux/man-pages/man2/execveat.2.html
 [`exec*()` family]: https://man7.org/linux/man-pages/man3/exec.3.html
