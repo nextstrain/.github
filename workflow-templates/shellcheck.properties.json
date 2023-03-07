@@ -1,0 +1,4 @@
+{
+  "name": "shellcheck",
+  "description": "Run ShellCheck on a repository's shell programs and the shell scripts embedded in its GitHub Actions workflows."
+}

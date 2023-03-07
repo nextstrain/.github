@@ -1,0 +1,11 @@
+name: shellcheck
+description: >-
+  Run ShellCheck on a repository's shell programs and the shell scripts
+  embedded in its GitHub Actions workflows.
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        "$GITHUB_ACTION_PATH"/shellcheck

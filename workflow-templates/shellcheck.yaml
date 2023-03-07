@@ -1,0 +1,12 @@
+name: shellcheck
+
+on:
+  - push
+  - workflow_dispatch
+
+jobs:
+  shellcheck:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nextstrain/.github/actions/shellcheck@master

@@ -1,0 +1,60 @@
+#!/bin/bash
+set -euo pipefail
+shopt -s extglob failglob
+
+bin="$(dirname "$0")"
+base="$(git rev-parse --show-toplevel)"
+
+main() {
+    local shellcheck
+
+    if ! shellcheck="$(command -v shellcheck 2>/dev/null)"; then
+        echo "--> Downloading ShellCheck binary…" >&2
+        shellcheck="$(download)"
+        echo "--> Downloaded ShellCheck binary to $shellcheck" >&2
+    fi
+
+    find-files | xargs -0 "$shellcheck" "$@"
+}
+
+find-files() {
+    shell-files
+    workflow-shell
+}
+
+shell-files() {
+    git grep -lzP '^#!(.*?)(ba)?sh'
+}
+
+workflow-shell() {
+    tmpdir="$base/.github/workflows/_shellcheck/"
+    rm -rf "$tmpdir"
+    mkdir "$tmpdir"
+    echo "*" > "$tmpdir/.gitignore"
+
+    git ls-files -z :/.github/workflows/'*'.y{a,}ml \
+        | xargs -0 "$bin"/extract-shell-from-gh-workflow -0 "$tmpdir"
+}
+
+download() {
+    local version kernel machine path
+    version=stable
+
+    # Always use x86_64 even on macOS aarch64 (arm64) because ShellCheck isn't
+    # built for the latter and macOS can still run the former (assuming Rosetta
+    # 2 is enabled).
+    kernel="$(uname -s | tr A-Z a-z)"
+    machine=x86_64
+
+    path="$(mktemp -t "shellcheck-$version.$kernel.$machine.XXXXXX")"
+
+    curl -fsSL --proto '=https' https://github.com/koalaman/shellcheck/releases/download/"$version"/shellcheck-"$version"."$kernel"."$machine".tar.xz \
+      | xz --decompress --stdout \
+      | tar x shellcheck-"$version"/shellcheck --to-stdout \
+      > "$path"
+
+    chmod +x "$path"
+    echo "$path"
+}
+
+main "$@"
