@@ -43,6 +43,8 @@ download() {
     # Always use x86_64 even on macOS aarch64 (arm64) because ShellCheck isn't
     # built for the latter and macOS can still run the former (assuming Rosetta
     # 2 is enabled).
+    #
+    # shellcheck disable=SC2018,SC2019
     kernel="$(uname -s | tr A-Z a-z)"
     machine=x86_64
 
