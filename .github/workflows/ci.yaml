@@ -37,8 +37,9 @@ jobs:
       docs-directory: docs/
       pip-install-target: .[dev]
 
-  test-readme:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - run: ./devel/check-readme
+      - uses: ./actions/shellcheck
