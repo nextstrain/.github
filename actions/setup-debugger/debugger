@@ -12,7 +12,8 @@ fi
 #
 # ¹ <https://www.kernel.org/doc/html/latest/filesystems/proc.html#proc-pid-comm-proc-pid-task-tid-comm>
 declare runner_comm=".NET ThreadPool"
-declare runner_uid="$(id --user "${RUNNER_USER:-$(id --real --user)}")"
+declare runner_uid
+runner_uid="$(id --user "${RUNNER_USER:-$(id --real --user)}")"
 
 # Globals, for convenience, made explicit.  Managed by set-vars and
 # reset-vars.
@@ -27,13 +28,13 @@ main() {
     trap cleanup EXIT
 
     start-interceptor
-    <& $interceptor continue-workflow-when-ready
+    <& "$interceptor" continue-workflow-when-ready
 
     echo >&2
     echo "waiting for execs… Ctrl-C at any time to quit." >&2
     echo >&2
 
-    while <& $interceptor IFS=$'\x1f' read -r pid comm exe; do
+    while <& "$interceptor" IFS=$'\x1f' read -r pid comm exe; do
         echo -n "process $pid ($comm) exec of $exe "
         set-vars
 
@@ -85,7 +86,7 @@ interact() {
     # REPL, with readline editing and (same session-only) history
     echo "entering interactive mode (try the \"help\" command)" >&2
     echo
-    local cmd params name value tmp
+    local cmd params tmp
     while read -e -r -p "> " cmd params; do
         if [[ -n "$cmd" ]]; then
             # Add command to history
@@ -162,7 +163,7 @@ interact() {
 start-interceptor() {
     echo "starting bpftrace interceptor" >&2
     coproc interceptor
-    interceptor="$COPROC"
+    interceptor="${COPROC[0]}"
     interceptor_pid="$COPROC_PID"
 }
 
@@ -224,7 +225,7 @@ set-vars() {
     # convenience; most folks won't care about argv0.
     local -a argv
     readarray -d $'\0' argv < /proc/"$pid"/cmdline
-    argv0="${argv[@]:0:1}"
+    argv0="${argv[*]:0:1}"
     args=("${argv[@]:1}")
 
     # Read environment from /proc.

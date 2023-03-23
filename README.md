@@ -30,6 +30,7 @@ See also GitHub's [documentation on issue and PR templates](https://docs.github.
 Invoked by our GitHub Actions workflows, including the reusable workflows below.
 
 - [Setup Nextstrain CLI](actions/setup-nextstrain-cli/action.yaml)
+- [shellcheck](actions/shellcheck/action.yaml)
 - [Setup SSH](actions/setup-ssh/action.yaml) access to runner machine
   ([README](actions/setup-ssh/README.md))
 - [Setup debugger](actions/setup-debugger/action.yaml) for interactive debugging of workflow jobs
@@ -71,6 +72,10 @@ Used to setup other repos.
 - Sync RTD redirects
   ([template](workflow-templates/sync-rtd-redirects.yaml),
   [properties](workflow-templates/sync-rtd-redirects.properties.json))
+
+- shellcheck
+  ([template](workflow-templates/shellcheck.yaml),
+  [properties](workflow-templates/shellcheck.properties.json))
 
 - Debugging runner: Launch a runner for ad-hoc interactive debugging over SSH using `setup-ssh` above.
   Only for use in private repositories!

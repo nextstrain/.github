@@ -91,6 +91,8 @@ jobs:
         env:
           env: ${{ inputs.env }}
         run: >
+          # shellcheck disable=SC2154
+
           echo "$env"
           | yq --output-format json .
           | jq --raw-output '

@@ -42,11 +42,13 @@ files-of-interest() {
 
 files-to-ignore() {
     git ls-files \
+        .gitignore \
         README.md \
         devel/check-readme \
         'images/*' \
         actions/setup-ssh/!(*.yaml|README.md) \
-        actions/setup-debugger/!(*.yaml|README.md)
+        actions/setup-debugger/!(*.yaml|README.md) \
+        actions/shellcheck/!(*.yaml|README.md)
 }
 
 relative-links() {
