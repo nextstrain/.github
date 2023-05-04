@@ -35,6 +35,7 @@ Invoked by our GitHub Actions workflows, including the reusable workflows below.
   ([README](actions/setup-ssh/README.md))
 - [Setup debugger](actions/setup-debugger/action.yaml) for interactive debugging of workflow jobs
   ([README](actions/setup-debugger/README.md))
+- [Run Nextstrain build on AWS Batch](actions/run-nextstrain-build-on-aws-batch/action.yaml)
 
 See also GitHub's [documentation on creating custom actions](https://docs.github.com/en/actions/creating-actions/about-custom-actions).
 
@@ -81,6 +82,10 @@ Used to setup other repos.
   Only for use in private repositories!
   ([template](workflow-templates/debugging-runner.yaml),
   [properties](workflow-templates/debugging-runner.properties.json))
+
+- Run Nextstrain build on AWS Batch
+  ([template](workflow-templates/run-nextstrain-build-on-aws-batch.yaml),
+  [properties](workflow-templates/run-nextstrain-build-on-aws-batch.properties.json))
 
 See also GitHub's [documentation on starter workflows](https://docs.github.com/en/actions/using-workflows/creating-starter-workflows-for-your-organization).
 

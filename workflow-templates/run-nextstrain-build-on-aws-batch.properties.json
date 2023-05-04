@@ -1,0 +1,4 @@
+{
+  "name": "Run Nextstrain build on AWS Batch",
+  "description": "Starter workflow for setting up Nextstrain builds that need to run on AWS Batch."
+}

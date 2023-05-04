@@ -48,7 +48,8 @@ files-to-ignore() {
         'images/*' \
         actions/setup-ssh/!(*.yaml|README.md) \
         actions/setup-debugger/!(*.yaml|README.md) \
-        actions/shellcheck/!(*.yaml|README.md)
+        actions/shellcheck/!(*.yaml|README.md) \
+        actions/run-nextstrain-build-on-aws-batch/!(*.yaml|README.md)
 }
 
 relative-links() {

@@ -1,0 +1,28 @@
+name: Run Nextstrain build on AWS Batch
+
+on:
+  workflow_dispatch:
+    inputs:
+      image:
+        description: "Specific starter image to use for the build. Will override the default image for `nextstrain build`."
+        required: false
+        type: string
+
+jobs:
+  deploy-build-to-aws-batch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nextstrain/.github/actions/run-nextstrain-build-on-aws-batch@master
+        with:
+          runtime-envvar-names: "GITHUB_RUN_ID PAT_GITHUB_DISPATCH SLACK_CHANNELS SLACK_TOKEN"
+        env:
+          NEXTSTRAIN_DOCKER_IMAGE: ${{ inputs.image }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          # Not auto-forwarded to builds, variable names must be passed via runtime-envvar-names
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          PAT_GITHUB_DISPATCH: ${{ secrets.GH_TOKEN_NEXTSTRAIN_BOT_WORKFLOW_DISPATCH }}
+          SLACK_CHANNELS: slack-channel-name
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+

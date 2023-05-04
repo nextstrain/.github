@@ -1,0 +1,68 @@
+name: Run Nextstrain build on AWS Batch
+description: >-
+  This GitHub Actions action is intended to be called by workflows in our other
+  repos when they need to run a nextstrain build on AWS Batch.
+
+inputs:
+  runtime-envvar-names:
+    description: >-
+      A list of environment variable names for environment variables that
+      should be passed to the build. The envvar names should be separated by
+      a space, e.g. "GITHUB_RUN_ID SLACK_TOKEN SLACK_CHANNELS"
+    type: string
+    required: false
+
+  cpus:
+    description: >-
+      Number of CPUs/cores/threads/jobs to utilize at once.
+      Will be passed to the `--cpus` option for `nextstrain build` and the
+      `--cores` option for Snakemake.
+    type: number
+    default: 4
+    required: false
+
+  memory:
+    description: >-
+      Amount of memory to make available to the build. Passed to the
+      `--memory` option for `nextstrain build`.
+    type: string
+    required: false
+
+  build-args:
+    description: >-
+      Additional command-line arguments to pass to `nextstrain build` after
+      the build directory (e.g. to Snakemake).
+    type: string
+    default: ""
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - uses: nextstrain/.github/actions/setup-nextstrain-cli@master
+
+    - name: Creating env.d
+      shell: bash
+      run: |
+        "$GITHUB_ACTION_PATH"/write-envdir env.d \
+          ${{ inputs.runtime-envvar-names }}
+
+    - name: Launch build on AWS Batch
+      shell: bash
+      run: |
+        nextstrain build \
+          --aws-batch \
+          --detach \
+          --no-download \
+          --cpus ${{ inputs.cpus }} \
+          --memory ${{ inputs.memory }} \
+          --exec env \
+          . \
+            envdir env.d snakemake \
+              --cores ${{ inputs.cpus }} \
+              ${{ inputs.build-args }} \
+        | tee >(tail -n4 >> "$GITHUB_STEP_SUMMARY")
+      env:
+        NEXTSTRAIN_DOCKER_IMAGE: ${{ env.NEXTSTRAIN_DOCKER_IMAGE }}
+        AWS_ACCESS_KEY_ID: ${{ env.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ env.AWS_SECRET_ACCESS_KEY }}
