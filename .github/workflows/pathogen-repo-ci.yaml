@@ -44,6 +44,10 @@ on:
         default: ""
         required: false
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -60,6 +64,17 @@ jobs:
           registry: docker.io
           username: nextstrainbot
           password: ${{ secrets.DOCKER_TOKEN_PUBLIC_READ_ONLY }}
+        continue-on-error: true
+
+      # Log in, if possible, to ghcr.io which we use for staging images in
+      # nextstrain/docker-base.  The automatic GITHUB_TOKEN is restricted to
+      # read-only access by the "permissions:" block above.
+      - name: Log in to ghcr.io
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
       # Transforms the inputs.env *string* containing YAML like this:
