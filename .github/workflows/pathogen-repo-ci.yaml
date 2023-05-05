@@ -48,6 +48,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # Log in, if possible, to docker.io (Docker Hub), since authenticated
+      # requests get higher rate limits (e.g. for image pulls).  Our org-level
+      # secret DOCKER_TOKEN_PUBLIC_READ_ONLY is available to all our public
+      # repos on GitHub but only available here to this reusable workflow when
+      # called with "secrets: inherit".  On Docker Hub, the token is granted
+      # "public read-only" access.
+      - name: Log in to docker.io
+        uses: docker/login-action@v2
+        with:
+          registry: docker.io
+          username: nextstrainbot
+          password: ${{ secrets.DOCKER_TOKEN_PUBLIC_READ_ONLY }}
+        continue-on-error: true
+
       # Transforms the inputs.env *string* containing YAML like this:
       #
       #   FOO: bar
