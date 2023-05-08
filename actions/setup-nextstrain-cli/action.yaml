@@ -44,8 +44,10 @@ runs:
     - run: python3 -m pip install --upgrade pip setuptools wheel
       shell: bash
 
-    - run: python3 -m pip install --upgrade nextstrain-cli'${{ inputs.cli-version }}'
+    - run: python3 -m pip install --upgrade nextstrain-cli"$version"
       shell: bash
+      env:
+        version: ${{ inputs.cli-version }}
 
     - run: nextstrain version
       shell: bash
