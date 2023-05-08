@@ -64,3 +64,6 @@ runs:
       shell: bash
       env:
         runtime: ${{ inputs.runtime }}
+
+    - run: nextstrain version --verbose
+      shell: bash
