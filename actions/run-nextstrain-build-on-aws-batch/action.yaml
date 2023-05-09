@@ -7,8 +7,15 @@ inputs:
   runtime-envvar-names:
     description: >-
       A list of environment variable names for environment variables that
-      should be passed to the build. The envvar names should be separated by
-      a space, e.g. "GITHUB_RUN_ID SLACK_TOKEN SLACK_CHANNELS"
+      should be passed to the build's runtime. The environment variables that
+      the Nextstrain CLI automatically forwards to the runtime do not need to be
+      listed here. See the list of environment variables that are auto-forwarded in
+      the Nextstrain CLI repo (https://github.com/nextstrain/cli/blob/master/nextstrain/cli/hostenv.py)
+
+      The environment variables can be any environment variable specified at
+      any level (workflow, job, or step) of the workflow using it.
+      The environment variable names should be separated by a space,
+      e.g. "GITHUB_RUN_ID SLACK_TOKEN SLACK_CHANNELS"
     type: string
     required: false
 
@@ -16,7 +23,8 @@ inputs:
     description: >-
       Number of CPUs/cores/threads/jobs to utilize at once.
       Will be passed to the `--cpus` option for `nextstrain build` and the
-      `--cores` option for Snakemake.
+      `--cores` option for Snakemake. See `nextstrain build` docs for more details:
+      https://docs.nextstrain.org/projects/cli/page/commands/build/
     type: number
     default: 4
     required: false
@@ -25,13 +33,15 @@ inputs:
     description: >-
       Amount of memory to make available to the build. Passed to the
       `--memory` option for `nextstrain build`.
+      See `nextstrain build` docs for more details:
+      https://docs.nextstrain.org/projects/cli/page/commands/build/
     type: string
     required: false
 
   build-args:
     description: >-
       Additional command-line arguments to pass to `nextstrain build` after
-      the build directory (e.g. to Snakemake).
+      the build directory (i.e. additional arguments for Snakemake).
     type: string
     default: ""
     required: false
