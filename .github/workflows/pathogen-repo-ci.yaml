@@ -44,6 +44,13 @@ on:
         default: ""
         required: false
 
+      continue-on-error:
+        description: >-
+          Pass thru for <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontinue-on-error>.
+        type: boolean
+        default: false
+        required: false
+
 permissions:
   contents: read
   packages: read
@@ -51,6 +58,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    continue-on-error: ${{ inputs.continue-on-error }}
     steps:
       # Log in, if possible, to docker.io (Docker Hub), since authenticated
       # requests get higher rate limits (e.g. for image pulls).  Our org-level
