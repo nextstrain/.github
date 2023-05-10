@@ -66,14 +66,12 @@ jobs:
       # repos on GitHub but only available here to this reusable workflow when
       # called with "secrets: inherit".  On Docker Hub, the token is granted
       # "public read-only" access.
-      - id: DOCKER_TOKEN_PUBLIC_READ_ONLY
-        name: Check if DOCKER_TOKEN_PUBLIC_READ_ONLY secret is available
+      #
+      # The secrets context is not allowed in "if:" conditions, so we must
+      # launder it thru env.
+      - if: env.token-available == 'true'
         env:
-          DOCKER_TOKEN_PUBLIC_READ_ONLY: ${{ secrets.DOCKER_TOKEN_PUBLIC_READ_ONLY }}
-        run: |
-          tee -a "$GITHUB_OUTPUT" <<<available=${DOCKER_TOKEN_PUBLIC_READ_ONLY:+yes}
-
-      - if: steps.DOCKER_TOKEN_PUBLIC_READ_ONLY.outputs.available == 'yes'
+          token-available: ${{ secrets.DOCKER_TOKEN_PUBLIC_READ_ONLY != '' }}
         name: Log in to docker.io
         uses: docker/login-action@v2
         with:
