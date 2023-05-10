@@ -44,6 +44,18 @@ on:
         default: ""
         required: false
 
+      artifact-name:
+        description: >-
+          Name to use for build results artifact uploaded at the end of the
+          workflow.
+
+          If you're invoking this workflow multiple times from the same calling
+          workflow, you should set this.  Otherwise, the default of "outputs"
+          is probably fine.
+        type: string
+        default: outputs
+        required: false
+
       continue-on-error:
         description: >-
           Pass thru for <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontinue-on-error>.
@@ -189,7 +201,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: outputs
+          name: ${{ inputs.artifact-name }}
           path: |
             auspice/
             results/
