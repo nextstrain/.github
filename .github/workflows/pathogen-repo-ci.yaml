@@ -56,10 +56,11 @@ on:
                 - docker
                 - conda
 
-          Defaults to only "docker".  One job per runtime will be run.
+          Defaults to "docker" and "conda".  One job per runtime will be run.
         type: string
         default: |
           - docker
+          - conda
         required: false
 
       artifact-name:
