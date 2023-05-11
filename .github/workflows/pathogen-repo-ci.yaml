@@ -44,10 +44,29 @@ on:
         default: ""
         required: false
 
+      runtimes:
+        description: >-
+          List of Nextstrain runtimes under which to run the build, as a string
+          containing YAML.  This is easily produced, for example, by pretending
+          you're writing normal nested YAML within a literal multi-line block
+          scalar (introduced by "|"):
+
+            with:
+              runtimes: |
+                - docker
+                - conda
+
+          Defaults to only "docker".  One job per runtime will be run.
+        type: string
+        default: |
+          - docker
+        required: false
+
       artifact-name:
         description: >-
           Name to use for build results artifact uploaded at the end of the
-          workflow.
+          workflow.  This name will be suffixed with other information from the
+          workflow job matrix to distinguish each artifact in a workflow run.
 
           If you're invoking this workflow multiple times from the same calling
           workflow, you should set this.  Otherwise, the default of "outputs"
@@ -68,7 +87,25 @@ permissions:
   packages: read
 
 jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    steps:
+      - id: inputs
+        env:
+          runtimes: ${{ inputs.runtimes }}
+        shell: bash
+        run: |
+          runtimes="$(yq --output-format=json --indent=0 . <<<"$runtimes")"
+          echo runtimes="$runtimes" | tee -a "$GITHUB_OUTPUT"
+    outputs:
+      runtimes: ${{ steps.inputs.outputs.runtimes }}
+
   build:
+    needs: configuration
+    strategy:
+      matrix:
+        runtime: ${{ fromJSON(needs.configuration.outputs.runtimes) }}
+    name: build (${{ matrix.runtime }})
     runs-on: ubuntu-latest
     continue-on-error: ${{ inputs.continue-on-error }}
     steps:
@@ -182,8 +219,9 @@ jobs:
       # future changes to setup-nextstrain-cli.
       #
       #   -trs, 28 April 2022
-      - uses: nextstrain/.github/actions/setup-nextstrain-cli@90af34a2feb76db3feb337b03faf1ae158fd5042
+      - uses: nextstrain/.github/actions/setup-nextstrain-cli@29b00885dff495824a12d95d709c03d3891cc12d
         with:
+          runtime: ${{ matrix.runtime }}
           # Consider parameterizing the Python version. -trs, 1 April 2022
           python-version: "3.7"
 
@@ -196,12 +234,12 @@ jobs:
             echo No example data to copy.
           fi
 
-      - run: nextstrain build --docker . ${{ inputs.build-args }}
+      - run: nextstrain build . ${{ inputs.build-args }}
 
       - if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.artifact-name }}
+          name: ${{ inputs.artifact-name }}-${{ matrix.runtime }}
           path: |
             auspice/
             results/
