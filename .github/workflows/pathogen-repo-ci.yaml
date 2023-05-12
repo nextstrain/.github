@@ -104,6 +104,7 @@ jobs:
   build:
     needs: configuration
     strategy:
+      fail-fast: false
       matrix:
         runtime: ${{ fromJSON(needs.configuration.outputs.runtimes) }}
     name: build (${{ matrix.runtime }})
