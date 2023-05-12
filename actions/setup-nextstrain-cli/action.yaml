@@ -26,6 +26,14 @@ inputs:
     default: ""
     required: false
 
+  runtime:
+    description: >-
+      Nextstrain runtime to configure and set as the default, as a string
+      understood by `nextstrain setup`.  Defaults to "docker".
+    type: string
+    default: docker
+    required: false
+
   python-version:
     description: >-
       Version of Python to use for Nextstrain CLI, as a string understood by
@@ -44,14 +52,18 @@ runs:
     - run: python3 -m pip install --upgrade pip setuptools wheel
       shell: bash
 
-    - run: python3 -m pip install --upgrade nextstrain-cli'${{ inputs.cli-version }}'
+    - run: python3 -m pip install --upgrade nextstrain-cli"$version"
       shell: bash
+      env:
+        version: ${{ inputs.cli-version }}
 
     - run: nextstrain version
       shell: bash
 
-    - run: nextstrain check-setup
+    - run: nextstrain setup --set-default "$runtime"
       shell: bash
+      env:
+        runtime: ${{ inputs.runtime }}
 
-    - run: nextstrain update
+    - run: nextstrain version --verbose
       shell: bash
