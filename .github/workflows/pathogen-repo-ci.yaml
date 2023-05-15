@@ -245,9 +245,9 @@ jobs:
           fi
 
       - name: pip install augur from github, only if augur-version is passed
-        if: inputs.augur-version
+        if: inputs.augur-version && ${{ matrix.runtime }} == 'conda'
         run: |
-          pip install git+nextstrain/augur@${{ inputs.augur-version }}
+          pip install git+https://github.com/nextstrain/augur.git@${{ inputs.augur-version }}
 
       - run: nextstrain build . ${{ inputs.build-args }}
 

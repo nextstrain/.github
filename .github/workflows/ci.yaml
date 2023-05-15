@@ -14,9 +14,3 @@ jobs:
       runtimes: |
         - conda
     secrets: inherit
-
-  test-pathogen-repo-ci:
-    uses: ./.github/workflows/pathogen-repo-ci.yaml
-    with:
-      repo: nextstrain/zika
-    secrets: inherit
