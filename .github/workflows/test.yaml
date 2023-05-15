@@ -1,0 +1,14 @@
+name: test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-pathogen-repo-ci:
+    uses: ./.github/workflows/pathogen-repo-ci.yaml
+    with:
+      repo: nextstrain/zika
+      augur-version: master
+      runtimes: |
+        - conda
+    secrets: inherit

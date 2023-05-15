@@ -83,6 +83,14 @@ on:
         default: false
         required: false
 
+      augur-version:
+        description: >-
+          Version of augur to install from github.com/nextstrain/augur.  This
+          is a branch name, tag name, or commit hash.  Defaults to "master".
+          If empty, nothing is done.
+        type: string
+        required: false
+
 permissions:
   contents: read
   packages: read
@@ -235,6 +243,11 @@ jobs:
           else
             echo No example data to copy.
           fi
+
+      - name: pip install augur from github, only if augur-version is passed
+        if: inputs.augur-version
+        run: |
+          pip install git+nextstrain/augur@${{ inputs.augur-version }}
 
       - run: nextstrain build . ${{ inputs.build-args }}
 
