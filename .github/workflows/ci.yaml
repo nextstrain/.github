@@ -3,23 +3,14 @@ name: CI
 on:
   push:
   pull_request:
-  workflow_dispatch:
-    inputs:
-      repo:
-        type: string
-        default: nextstrain/ncov
-        required: false
-      augur-version:
-        type: string
-        default: master
-        required: false
 
 jobs:
   test-pathogen-repo-ci-augur:
     uses: ./.github/workflows/pathogen-repo-ci.yaml
     with:
-      repo: ${{ inputs.repo }}
-      augur-version: ${{ inputs.augur-version }}
+      repo: nextstrain/ncov
+      augur-version: remove-overeager-validation
+      build-args: all_regions -j 2 --profile nextstrain_profiles/nextstrain-ci
       runtimes: |
         - conda
     secrets: inherit
