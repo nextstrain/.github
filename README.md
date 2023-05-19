@@ -89,3 +89,10 @@ See also GitHub's [documentation on starter workflows](https://docs.github.com/e
 
 - CI tests for the actions and reusable workflows above
   ([workflow](.github/workflows/ci.yaml))
+
+
+## Workflow scripts
+
+Executable scripts that are used in our workflows.
+
+- [write-envdir](bin/write-envdir)
