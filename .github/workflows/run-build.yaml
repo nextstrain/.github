@@ -1,0 +1,254 @@
+# This workflow is intended to be called by workflows in our various pathogen
+# build repos.  See workflow-templates/run-build.yaml (a "starter"
+# workflow) in this repo for an example of what the caller workflow looks like.
+name: Run build
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: >-
+          The reference to use for this reusable workflow. Please make sure
+          that this input ref matches the `@{ref}` that you use when calling the
+          reusable workflow to ensure that all other local files from the
+          nextstrain/.github repo are from the same ref.
+
+          This input is required as long as we are unable to detect the workflow
+          ref from within the reusable workflow.
+          See https://github.com/actions/toolkit/issues/1264
+        type: string
+        required: true
+
+      build-repo:
+        description: >-
+          Repository name with owner (e.g. nextstrain/zika). Defaults to the
+          repository of the caller workflow.
+        type: string
+        default: ${{ github.repository }}
+        required: false
+
+      runtime:
+        description: >-
+          Nextstrain runtime under which to run the build.
+          Currently only supports docker, conda, and aws-batch.
+          Defaults to "docker".
+        type: string
+        default: docker
+        required: false
+
+      env:
+        description: >-
+          Environment variables to set for this reusable workflow since
+          environment variables in the caller workflow are not propagated to
+          reusable workflows. This is expected to be a string containing YAML.
+
+          This is easily produced, for example, by pretending
+          you're writing normal nested YAML within a literal multi-line block
+          scalar (introduced by "|"):
+
+            with:
+              env: |
+                FOO: bar
+                I_CANT_BELIEVE: "it's not YAML"
+                would_you_believe: |
+                  it's
+                  not
+                  yaml
+
+          Do not use for secrets!  Instead, pass them via GitHub Action's
+          dedicated secrets mechanism.
+        type: string
+        default: ""
+        required: false
+
+      runtime-envvar-names:
+        description: >-
+          A list of environment variables that should be passed to the build's
+          runtime. The environment variables that the Nextstrain CLI automatically
+          forwards to the runtime do not need to be listed here.
+          See the list of environment variables that are auto-forwarded in
+          the Nextstrain CLI repo (https://github.com/nextstrain/cli/blob/master/nextstrain/cli/hostenv.py)
+
+          The environment variables must be passed via the `env` input or
+          via GitHub Action's secrets that are inherited by using `secrets: inherit`.
+          The environment variable names should be separated by a space,
+          e.g. "SLACK_TOKEN SLACK_CHANNELS".
+        type: string
+        required: false
+
+      cpus:
+        description: >-
+          Number of CPUs/cores/threads/jobs to utilize at once.
+          Will be passed to the `--cpus` option for `nextstrain build` and the
+          `--cores` option for Snakemake. See `nextstrain build` docs for more details:
+          https://docs.nextstrain.org/projects/cli/page/commands/build/
+        type: number
+        default: 2
+        required: false
+
+      memory:
+        description: >-
+          Amount of memory to make available to the build. Passed to the
+          `--memory` option for `nextstrain build`.
+          See `nextstrain build` docs for more details:
+          https://docs.nextstrain.org/projects/cli/page/commands/build/
+        type: string
+        required: false
+
+      build-args:
+        description: >-
+          Additional command-line arguments to pass to `nextstrain build` after
+          the build directory (i.e. additional args for Snakemake).
+        type: string
+        default: ""
+        required: false
+
+      artifact-name:
+        description: >-
+          Name to use for the build output artifact uploaded at end of the workflow.
+
+          If you're invoking this workflow multiple times from the same calling
+          workflow, you should set this. Otherwise, the default "build-outputs"
+          is probably fine.
+        type: string
+        default: build-outputs
+        required: false
+
+      build-output-paths:
+        description: >-
+          List of build output paths to include in the build output artifact uploaded
+          at the end of the workflow, as a string following the format of the
+          `paths` input of the `actions/upload-artifact` action.
+          For example:
+
+            with:
+              build-output-paths: |
+                results/
+                auspice/
+                logs/
+
+          The output will always include a "build.log" file which contains log
+          messages from the `nextstrain build` command. The envdir created to
+          pass environment variables to the build runtime will always be
+          excluded from the output to prevent secrets from being leaked.
+
+          This is not supported for builds on AWS Batch because the workflow
+          detaches from the build. Please use the `nextstrain build` command
+          locally to reattach to AWS Batch builds to download outputs.
+        type: string
+        default: ""
+        required: false
+
+env:
+  BUILD_DIR: build-dir
+  ENVDIR: env.d
+
+jobs:
+  run-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout nextstrain/.github (ref ${{ inputs.ref }})
+        uses: actions/checkout@v3
+        with:
+          repository: nextstrain/.github
+          ref: ${{ inputs.ref }}
+
+      - name: Setup runtime ${{ inputs.runtime }}
+        uses: ./actions/setup-nextstrain-cli
+        with:
+          runtime: ${{ inputs.runtime }}
+        # Required to set up aws-batch as default runtime
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      # envdir is not available in our Conda runtime
+      # (See https://github.com/nextstrain/conda-base/blob/135ec65cc286b6fc22f717a1157667cb9a7e0a55/src/recipe.yaml#L52)
+      # so it needs to be installed separately in the runtime environment.
+      #
+      # Installing directly in the nextstrain shell since pip installed packages
+      # do persist in the Conda runtime (https://github.com/nextstrain/cli/issues/282)
+      #   -Jover, 19 May 2023
+      - if: ${{ inputs.runtime == 'conda' }}
+        name: Install envdir for Conda runtime
+        shell: nextstrain shell . {0}
+        run: pip install envdir
+
+      - name: Checkout build repository
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.build-repo }}
+          path: ${{ env.BUILD_DIR }}
+
+      - if: inputs.env
+        name: Set environment variables
+        env:
+          env: ${{ inputs.env }}
+        run: >
+          # shellcheck disable=SC2154
+
+          echo "$env"
+          | ./bin/yaml-to-envvars
+          | tee -a "$GITHUB_ENV"
+
+      - if: inputs.runtime-envvar-names
+        name: Set secret runtime environment variables
+        env:
+          secrets: ${{ toJson(secrets) }}
+          varnames: ${{ inputs.runtime-envvar-names }}
+        run: >
+          # shellcheck disable=SC2154
+
+          echo "$secrets"
+          | ./bin/json-to-envvars --varnames="$varnames"
+          | tee -a "$GITHUB_ENV"
+
+      - name: Set build environment variables
+        env:
+          varnames: ${{ inputs.runtime-envvar-names }}
+        run: |
+          # shellcheck disable=SC2154
+
+          # read exits with 1 when it encounters EOF
+          read -a varnames -r -d $'\0' <<<"$varnames" || true
+          ./bin/write-envdir "${{ env.BUILD_DIR }}/${{ env.ENVDIR }}" "${varnames[@]}"
+
+      - name: Run build via ${{ inputs.runtime }}
+        env:
+          memory: ${{ inputs.memory && format('--memory "{0}"', inputs.memory) || '' }}
+          detach: ${{ inputs.runtime == 'aws-batch' && '--detach' || '' }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          nextstrain build \
+            --cpus ${{ inputs.cpus }} \
+            ${{ env.memory }} \
+            ${{ env.detach }} \
+            --exec env \
+            ${{ env.BUILD_DIR }} \
+              envdir ${{ env.ENVDIR }} snakemake \
+              --cores ${{ inputs.cpus }} \
+              ${{ inputs.build-args }} \
+          | tee build.log
+
+      - if: ${{ inputs.runtime == 'aws-batch' }}
+        name: Get AWS Batch job id
+        id: aws-batch
+        run: |
+          echo "AWS_BATCH_JOB_ID=$(tail -n1 build.log | sed -nE 's/.+attach ([-a-f0-9]+).+/\1/p')" >> "$GITHUB_ENV"
+
+      - if: env.AWS_BATCH_JOB_ID
+        name: Generate AWS Batch summary
+        run: |
+          ./bin/interpolate-text-template \
+            ./text-templates/attach-aws-batch.md \
+            > "$GITHUB_STEP_SUMMARY"
+
+      - if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: |
+            build.log
+            ${{ inputs.build-output-paths }}
+            !${{ env.ENVDIR }}

@@ -1,0 +1,10 @@
+name: Run build
+
+on: workflow_dispatch
+
+jobs:
+  run-build:
+    uses: nextstrain/.github/.github/workflows/run-build.yaml@master
+    with:
+      ref: master
+    secrets: inherit

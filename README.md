@@ -52,6 +52,9 @@ Invoked by other repos.
 - Sync RTD redirects
   ([workflow](.github/workflows/sync-rtd-redirects.yaml))
 
+- Run Nextstrain build
+  ([workflow](.github/workflows/run-build.yaml))
+
 See also GitHub's [documentation on reusing workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
 
 
@@ -82,6 +85,10 @@ Used to setup other repos.
   ([template](workflow-templates/debugging-runner.yaml),
   [properties](workflow-templates/debugging-runner.properties.json))
 
+- Run Nextstrain build
+  ([template](workflow-templates/run-build.yaml),
+  [properties](workflow-templates/run-build.properties.json))
+
 See also GitHub's [documentation on starter workflows](https://docs.github.com/en/actions/using-workflows/creating-starter-workflows-for-your-organization).
 
 
@@ -99,3 +106,9 @@ Executable scripts that are used in our workflows.
 - [write-envdir](bin/write-envdir)
 - [json-to-envvars](bin/json-to-envvars)
 - [yaml-to-envvars](bin/yaml-to-envvars)
+
+## Workflow text templates
+
+Text templates for messages and summaries in our workflows.
+
+- [attach-aws-batch](text-templates/attach-aws-batch.md)
