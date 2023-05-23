@@ -1,0 +1,12 @@
+#!/bin/bash
+# usage: interpolate-text-template <text-template>
+#
+# Replaces ${x} in <text-template> with value of environment variable "x" and
+# outputs the updated text to stdout.
+#
+# Modified from the conda-base repo's CI workflow:
+# https://github.com/nextstrain/conda-base/blob/a2da0f5ef7e95f9db31678c2df00bd312c7b754a/.github/workflows/ci.yaml#L109-L111
+#
+set -eou pipefail
+
+perl -pe 's/\$\{(.+?)\}/$ENV{$1}/ge' < "$1" \
