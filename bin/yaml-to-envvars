@@ -1,0 +1,40 @@
+#!/bin/bash
+#
+# Transforms YAML from stdin like this:
+#
+#   FOO: bar
+#   I_CANT_BELIEVE: "it's not YAML"
+#   would_you_believe: |
+#     it's
+#     not
+#     yaml
+#
+# first into the equivalent JSON (with yq) and then into text (with jq)
+# like this:
+#
+#   FOO<<__EOF__
+#   bar
+#   __EOF__
+#   I_CANT_BELIEVE<<__EOF__
+#   it's not YAML
+#   __EOF__
+#   would_you_believe<<__EOF__
+#   it's
+#   not
+#   yaml
+#   __EOF__
+#
+# which is suitable for appending to the $GITHUB_ENV file in order to set
+# the environment variables for subsequent steps.
+#
+# See the GitHub docs for more info on this heredoc-like syntax, which is
+# used here to avoid quoting issues in arbitrary env var values:
+# https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
+#
+# Modified from the pathogne-repo-ci workflow:
+# https://github.com/nextstrain/.github/blob/cc6f4385a45bd6ed114ab4840416fd90cc46cd1b/.github/workflows/pathogen-repo-ci.yaml#L145-L196
+#
+set -eou pipefail
+bin="$(dirname "$0")"
+
+yq --output-format json . | "$bin/json-to-envvars"

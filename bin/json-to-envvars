@@ -1,0 +1,55 @@
+#!/bin/bash
+# usage: json-to-envvars [--varnames=<varnames>]
+#
+# Transforms JSON object from stdin like this:
+#
+#   {
+#     "ENV1": "ABC",
+#     "ENV2": "DEF"
+#   }
+#
+# into text like this:
+#
+#   ENV1<<__EOF__
+#   ABC
+#   __EOF__
+#   ENV2<<__EOF__
+#   DEF
+#   __EOF__
+#
+# which is suitable for appending to the $GITHUB_ENV file in order to set
+# the environment variables for subsequent steps.
+#
+# Only specified <varnames> will be included in the output.
+# If no <varnames> are provided, all key/value pairs will be included.
+# <varnames> should be a string of variable names separated a space, e.g. "ENV1 ENV2"
+#
+# See the GitHub docs for more info on this heredoc-like syntax, which is
+# used here to avoid quoting issues in arbitrary env var values:
+# https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
+#
+# Modified from the pathogne-repo-ci workflow:
+# https://github.com/nextstrain/.github/blob/cc6f4385a45bd6ed114ab4840416fd90cc46cd1b/.github/workflows/pathogen-repo-ci.yaml#L145-L196
+#
+set -eou pipefail
+
+varnames=""
+
+for arg; do
+  case "$arg" in
+    --varnames=*)
+      varnames="${arg#*=}"
+      shift;;
+    *)
+      break;;
+  esac
+done
+
+varnames=$(jq --raw-input 'split(" ")' <<< "$varnames")
+
+jq --raw-output --argjson varnames "$varnames" '
+    to_entries
+  | if ($varnames | length) > 0 then map(select(.key|IN($varnames[]))) else . end
+  | map("\(.key)<<__EOF__\n\(.value)\n__EOF__")
+  | join("\n")
+'
