@@ -5,7 +5,8 @@
 #
 #   {
 #     "ENV1": "ABC",
-#     "ENV2": "DEF"
+#     "ENV2": "DEF",
+#     "ENV3": null
 #   }
 #
 # into text like this:
@@ -16,9 +17,13 @@
 #   ENV2<<__EOF__
 #   DEF
 #   __EOF__
+#   ENV3<<__EOF__
+#
+#   __EOF__
 #
 # which is suitable for appending to the $GITHUB_ENV file in order to set
-# the environment variables for subsequent steps.
+# the environment variables for subsequent steps. Note that null values are
+# converted to empty strings so that they don't get intepreted as the value "null".
 #
 # Only specified <varnames> will be included in the output.
 # If no <varnames> are provided, all key/value pairs will be included.
@@ -50,6 +55,6 @@ varnames=$(jq --raw-input 'split(" ")' <<< "$varnames")
 jq --raw-output --argjson varnames "$varnames" '
     to_entries
   | if ($varnames | length) > 0 then map(select(.key|IN($varnames[]))) else . end
-  | map("\(.key)<<__EOF__\n\(.value)\n__EOF__")
+  | map("\(.key)<<__EOF__\n\(if .value != null then .value else "" end)\n__EOF__")
   | join("\n")
 '
