@@ -80,25 +80,38 @@ on:
         description: >-
           Number of CPUs/cores/threads/jobs to utilize at once.
           Will be passed to the `--cpus` option for `nextstrain build` and the
-          `--cores` option for Snakemake. See `nextstrain build` docs for more details:
+          `--cores` option for Snakemake.
+
+          See `nextstrain build` docs for more details:
           https://docs.nextstrain.org/projects/cli/page/commands/build/
+
+          If using the "aws-batch" runtime, see the AWS Batch docs for details
+          on the available CPUs for C5 instances:
+          https://aws.amazon.com/ec2/instance-types/c5/
         type: number
         default: 2
         required: false
 
       memory:
         description: >-
-          Amount of memory to make available to the build. Passed to the
-          `--memory` option for `nextstrain build`.
+          Amount of memory to make available to the build.
+          Units of b, kb, mb, gb, kib, mib, gib are supported.
+          Passed to the `--memory` option for `nextstrain build`.
+
           See `nextstrain build` docs for more details:
           https://docs.nextstrain.org/projects/cli/page/commands/build/
+
+          If using the "aws-batch" runtime, see the AWS Batch C5 for details
+          on the available memory for C5 instances:
+          https://aws.amazon.com/ec2/instance-types/c5/
         type: string
         required: false
 
       build-args:
         description: >-
-          Additional command-line arguments to pass to `nextstrain build` after
-          the build directory (i.e. additional args for Snakemake).
+          Additional arguments to pass to Snakemake. Please remove any
+          additional `--cores N` arguments and use the `cpus` input of this
+          workflow.
         type: string
         default: ""
         required: false
