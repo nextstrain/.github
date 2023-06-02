@@ -6,19 +6,6 @@ name: Run build
 on:
   workflow_call:
     inputs:
-      ref:
-        description: >-
-          The reference to use for this reusable workflow. Please make sure
-          that this input ref matches the `@{ref}` that you use when calling the
-          reusable workflow to ensure that all other local files from the
-          nextstrain/.github repo are from the same ref.
-
-          This input is required as long as we are unable to detect the workflow
-          ref from within the reusable workflow.
-          See https://github.com/actions/toolkit/issues/1264
-        type: string
-        required: true
-
       build-repo:
         description: >-
           Repository name with owner (e.g. nextstrain/zika). Defaults to the
@@ -157,14 +144,26 @@ env:
   ENVDIR: env.d
 
 jobs:
+  workflow-context:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - id: workflow-context
+        uses: nextstrain/.github/actions/workflow-context@master
+    outputs:
+      repository: ${{ steps.workflow-context.outputs.repository }}
+      sha: ${{ steps.workflow-context.outputs.sha }}
+
   run-build:
+    needs: workflow-context
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout nextstrain/.github (ref ${{ inputs.ref }})
+      - name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
         uses: actions/checkout@v3
         with:
-          repository: nextstrain/.github
-          ref: ${{ inputs.ref }}
+          repository: ${{ needs.workflow-context.outputs.repository }}
+          ref: ${{ needs.workflow-context.outputs.sha }}
 
       - name: Setup runtime ${{ inputs.runtime }}
         uses: ./actions/setup-nextstrain-cli

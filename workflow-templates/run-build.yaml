@@ -4,7 +4,8 @@ on: workflow_dispatch
 
 jobs:
   run-build:
+    # The `id-token: write` permission is required for this workflow.
+    permissions:
+      id-token: write
     uses: nextstrain/.github/.github/workflows/run-build.yaml@master
-    with:
-      ref: master
     secrets: inherit

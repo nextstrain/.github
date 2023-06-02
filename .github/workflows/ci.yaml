@@ -46,12 +46,13 @@ jobs:
       pip-install-target: .[dev]
 
   test-run-build:
+    permissions:
+      id-token: write
     strategy:
       matrix:
         runtime: [docker, conda]
     uses: ./.github/workflows/run-build.yaml
     with:
-      ref: ${{ github.sha }}
       build-repo: nextstrain/zika-tutorial
       runtime: ${{ matrix.runtime }}
       artifact-name: build-output-${{ matrix.runtime }}
