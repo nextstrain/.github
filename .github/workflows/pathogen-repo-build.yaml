@@ -146,7 +146,7 @@ on:
 
 env:
   BUILD_DIR: build-dir
-  ENVDIR: env.d
+  ENV_DIR: env.d
 
 jobs:
   workflow-context:
@@ -228,7 +228,7 @@ jobs:
 
           # read exits with 1 when it encounters EOF
           read -a varnames -r -d $'\0' <<<"$varnames" || true
-          ./bin/write-envdir "${{ env.BUILD_DIR }}/${{ env.ENVDIR }}" "${varnames[@]}"
+          ./bin/write-envdir "${{ env.BUILD_DIR }}/${{ env.ENV_DIR }}" "${varnames[@]}"
 
       - name: Run build via ${{ inputs.runtime }}
         env:
@@ -243,7 +243,7 @@ jobs:
             ${{ env.detach }} \
             --exec env \
             ${{ env.BUILD_DIR }} \
-              envdir ${{ env.ENVDIR }} snakemake \
+              envdir ${{ env.ENV_DIR }} snakemake \
               --cores ${{ inputs.cpus }} \
               ${{ inputs.build-args }} \
           | tee build.log
@@ -268,4 +268,4 @@ jobs:
           path: |
             build.log
             ${{ inputs.artifact-paths }}
-            !${{ env.ENVDIR }}
+            !${{ env.ENV_DIR }}
