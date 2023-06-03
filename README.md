@@ -53,8 +53,8 @@ Invoked by other repos.
 - Sync RTD redirects
   ([workflow](.github/workflows/sync-rtd-redirects.yaml))
 
-- Run Nextstrain build
-  ([workflow](.github/workflows/run-build.yaml))
+- Pathogen repo build
+  ([workflow](.github/workflows/pathogen-repo-build.yaml))
 
 See also GitHub's [documentation on reusing workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
 
@@ -86,9 +86,9 @@ Used to setup other repos.
   ([template](workflow-templates/debugging-runner.yaml),
   [properties](workflow-templates/debugging-runner.properties.json))
 
-- Run Nextstrain build
-  ([template](workflow-templates/run-build.yaml),
-  [properties](workflow-templates/run-build.properties.json))
+- Pathogen repo build
+  ([template](workflow-templates/pathogen-repo-build.yaml),
+  [properties](workflow-templates/pathogen-repo-build.properties.json))
 
 See also GitHub's [documentation on starter workflows](https://docs.github.com/en/actions/using-workflows/creating-starter-workflows-for-your-organization).
 

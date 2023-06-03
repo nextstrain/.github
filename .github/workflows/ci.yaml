@@ -45,13 +45,13 @@ jobs:
       docs-directory: docs/
       pip-install-target: .[dev]
 
-  test-run-build:
+  test-pathogen-repo-build:
     permissions:
       id-token: write
     strategy:
       matrix:
         runtime: [docker, conda]
-    uses: ./.github/workflows/run-build.yaml
+    uses: ./.github/workflows/pathogen-repo-build.yaml
     with:
       build-repo: nextstrain/zika-tutorial
       runtime: ${{ matrix.runtime }}
