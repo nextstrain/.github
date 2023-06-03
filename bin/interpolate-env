@@ -1,7 +1,7 @@
 #!/bin/bash
-# usage: interpolate-text-template <text-template>
+# usage: interpolate-env
 #
-# Replaces ${x} in <text-template> with value of environment variable "x" and
+# Replaces ${x} in text from stdin with value of environment variable "x" and
 # outputs the updated text to stdout.
 #
 # Modified from the conda-base repo's CI workflow:
@@ -9,4 +9,4 @@
 #
 set -eou pipefail
 
-perl -pe 's/\$\{(.+?)\}/$ENV{$1}/ge' < "$1" \
+exec perl -pe 's/\$\{(.+?)\}/$ENV{$1}/ge'

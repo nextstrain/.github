@@ -252,9 +252,8 @@ jobs:
       - if: env.AWS_BATCH_JOB_ID
         name: Generate AWS Batch summary
         run: |
-          ./bin/interpolate-text-template \
-            ./text-templates/attach-aws-batch.md \
-            > "$GITHUB_STEP_SUMMARY"
+          ./bin/interpolate-env < ./text-templates/attach-aws-batch.md \
+          > "$GITHUB_STEP_SUMMARY"
 
       - if: always()
         uses: actions/upload-artifact@v3

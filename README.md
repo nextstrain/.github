@@ -103,7 +103,7 @@ See also GitHub's [documentation on starter workflows](https://docs.github.com/e
 
 Executable scripts that are used in our workflows.
 
-- [interpolate-text-template](bin/interpolate-text-template)
+- [interpolate-env](bin/interpolate-env)
 - [write-envdir](bin/write-envdir)
 - [json-to-envvars](bin/json-to-envvars)
 - [yaml-to-envvars](bin/yaml-to-envvars)
