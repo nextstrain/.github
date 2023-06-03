@@ -53,7 +53,7 @@ jobs:
         runtime: [docker, conda]
     uses: ./.github/workflows/pathogen-repo-build.yaml
     with:
-      build-repo: nextstrain/zika-tutorial
+      repo: nextstrain/zika-tutorial
       runtime: ${{ matrix.runtime }}
       artifact-name: build-output-${{ matrix.runtime }}
     secrets: inherit

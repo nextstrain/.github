@@ -6,7 +6,7 @@ name: Pathogen repo build
 on:
   workflow_call:
     inputs:
-      build-repo:
+      repo:
         description: >-
           Repository name with owner (e.g. nextstrain/zika). Defaults to the
           repository of the caller workflow.
@@ -194,7 +194,7 @@ jobs:
       - name: Checkout build repository
         uses: actions/checkout@v3
         with:
-          repository: ${{ inputs.build-repo }}
+          repository: ${{ inputs.repo }}
           path: ${{ env.BUILD_DIR }}
 
       - if: inputs.env
