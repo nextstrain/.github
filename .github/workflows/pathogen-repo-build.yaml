@@ -114,15 +114,15 @@ on:
         default: build-outputs
         required: false
 
-      build-output-paths:
+      artifact-paths:
         description: >-
-          List of build output paths to include in the build output artifact uploaded
+          List of paths to include in the build output artifact uploaded
           at the end of the workflow, as a string following the format of the
           `paths` input of the `actions/upload-artifact` action.
           For example:
 
             with:
-              build-output-paths: |
+              artifact-paths: |
                 results/
                 auspice/
                 logs/
@@ -136,7 +136,12 @@ on:
           detaches from the build. Please use the `nextstrain build` command
           locally to reattach to AWS Batch builds to download outputs.
         type: string
-        default: ""
+        default: |
+          auspice/
+          results/
+          benchmarks/
+          logs/
+          .snakemake/log/
         required: false
 
 env:
@@ -258,8 +263,9 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v3
         with:
+          if-no-files-found: warn
           name: ${{ inputs.artifact-name }}
           path: |
             build.log
-            ${{ inputs.build-output-paths }}
+            ${{ inputs.artifact-paths }}
             !${{ env.ENVDIR }}
