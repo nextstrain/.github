@@ -179,18 +179,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      # envdir is not available in our Conda runtime
-      # (See https://github.com/nextstrain/conda-base/blob/135ec65cc286b6fc22f717a1157667cb9a7e0a55/src/recipe.yaml#L52)
-      # so it needs to be installed separately in the runtime environment.
-      #
-      # Installing directly in the nextstrain shell since pip installed packages
-      # do persist in the Conda runtime (https://github.com/nextstrain/cli/issues/282)
-      #   -Jover, 19 May 2023
-      - if: ${{ inputs.runtime == 'conda' }}
-        name: Install envdir for Conda runtime
-        shell: nextstrain shell . {0}
-        run: pip install envdir
-
       - name: Checkout build repository
         uses: actions/checkout@v3
         with:
