@@ -216,23 +216,27 @@ jobs:
 
           # read exits with 1 when it encounters EOF
           read -a varnames -r -d $'\0' <<<"$varnames" || true
-          ./bin/write-envdir "${{ env.BUILD_DIR }}/${{ env.ENV_DIR }}" "${varnames[@]}"
+          ./bin/write-envdir "$BUILD_DIR/$ENV_DIR" "${varnames[@]}"
 
       - name: Run build via ${{ inputs.runtime }}
         env:
-          memory: ${{ inputs.memory && format('--memory "{0}"', inputs.memory) || '' }}
-          detach: ${{ inputs.runtime == 'aws-batch' && '--detach' || '' }}
+          cpus: ${{ inputs.cpus }}
+          memory: ${{ inputs.memory }}
+          detach: ${{ inputs.runtime == 'aws-batch' || null }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
+          # shellcheck disable=SC2154
+          set -x
+
           nextstrain build \
-            --cpus ${{ inputs.cpus }} \
-            ${{ env.memory }} \
-            ${{ env.detach }} \
+            --cpus "$cpus" \
+            ${memory:+--memory="$memory"} \
+            ${detach:+--detach} \
             --exec env \
-            ${{ env.BUILD_DIR }} \
-              envdir ${{ env.ENV_DIR }} snakemake \
-              --cores ${{ inputs.cpus }} \
+            "$BUILD_DIR" \
+              envdir "$ENV_DIR" snakemake \
+              --cores "$cpus" \
               ${{ inputs.build-args }} \
           | tee build.log
 
