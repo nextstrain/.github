@@ -56,7 +56,6 @@ jobs:
       repo: nextstrain/zika-tutorial
       runtime: ${{ matrix.runtime }}
       artifact-name: build-output-${{ matrix.runtime }}
-    secrets: inherit
 
   lint:
     runs-on: ubuntu-latest

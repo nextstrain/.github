@@ -144,6 +144,23 @@ on:
           .snakemake/log/
         required: false
 
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: AWS access key ID, required for aws-batch runtime only
+        required: false
+
+      AWS_SECRET_ACCESS_KEY:
+        description: AWS secret access key, required for aws-batch runtime only
+        required: false
+
+      GITHUB_PAT:
+        description: GitHub personal access token, required for additional permissions such as dispatching cross repo workflows
+        required: false
+
+      SLACK_TOKEN:
+        description: Slack Bot User OAuth Token, required for Slack notifications only
+        required: false
+
 env:
   BUILD_DIR: build-dir
   ENV_DIR: env.d
