@@ -204,8 +204,11 @@ jobs:
         run: >
           # shellcheck disable=SC2154
 
+          # read exits with 1 when it encounters EOF
+          read -a varnames -r -d $'\0' <<<"$varnames" || true
+
           echo "$secrets"
-          | ./bin/json-to-envvars --varnames="$varnames"
+          | ./bin/json-to-envvars "${varnames[@]}"
           | tee -a "$GITHUB_ENV"
 
       - name: Set build environment variables
