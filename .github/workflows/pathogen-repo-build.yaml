@@ -48,21 +48,6 @@ on:
         default: ""
         required: false
 
-      runtime-envvar-names:
-        description: >-
-          A list of environment variables that should be passed to the build's
-          runtime. The environment variables that the Nextstrain CLI automatically
-          forwards to the runtime do not need to be listed here.
-          See the list of environment variables that are auto-forwarded in
-          the Nextstrain CLI repo (https://github.com/nextstrain/cli/blob/master/nextstrain/cli/hostenv.py)
-
-          The environment variables must be passed via the `env` input or
-          via GitHub Action's secrets that are inherited by using `secrets: inherit`.
-          The environment variable names should be separated by a space,
-          e.g. "SLACK_TOKEN SLACK_CHANNELS".
-        type: string
-        required: false
-
       cpus:
         description: >-
           Number of CPUs/cores/threads/jobs to utilize at once.
@@ -213,29 +198,29 @@ jobs:
           | ./bin/yaml-to-envvars
           | tee -a "$GITHUB_ENV"
 
-      - if: inputs.runtime-envvar-names
-        name: Set secret runtime environment variables
+      - name: Set secrets as environment variables
         env:
           secrets: ${{ toJson(secrets) }}
-          varnames: ${{ inputs.runtime-envvar-names }}
         run: >
           # shellcheck disable=SC2154
 
-          # read exits with 1 when it encounters EOF
-          read -a varnames -r -d $'\0' <<<"$varnames" || true
-
           echo "$secrets"
-          | ./bin/json-to-envvars "${varnames[@]}"
+          | jq 'del(.github_token)'
+          | ./bin/json-to-envvars
           | tee -a "$GITHUB_ENV"
 
-      - name: Set build environment variables
+      - name: Set build runtime environment variables
         env:
-          varnames: ${{ inputs.runtime-envvar-names }}
+          env: ${{ inputs.env || '[]' }}
+          secrets: ${{ toJson(secrets) || '' }}
         run: |
           # shellcheck disable=SC2154
 
+          envvars=$(echo "$env" | yq 'keys | join(" ")')
+          secrets=$(echo "$secrets" | jq -r 'del(.github_token) | keys | join(" ")')
+
           # read exits with 1 when it encounters EOF
-          read -a varnames -r -d $'\0' <<<"$varnames" || true
+          read -a varnames -r -d $'\0' <<<"$envvars $secrets" || true
           ./bin/write-envdir "$BUILD_DIR/$ENV_DIR" "${varnames[@]}"
 
       - name: Run build via ${{ inputs.runtime }}
