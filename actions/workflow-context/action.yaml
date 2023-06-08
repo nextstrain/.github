@@ -45,4 +45,4 @@ runs:
           let unvalidatedClaims = JSON.parse(atob(idToken.split(".", 2)[1]));
 
           core.setOutput("sha", unvalidatedClaims.job_workflow_sha);
-          core.setOutput("repository", unvalidatedClaims.repository);
+          core.setOutput("repository", unvalidatedClaims.job_workflow_ref.replace(/\/\.github\/workflows\/.*$/, ""));
