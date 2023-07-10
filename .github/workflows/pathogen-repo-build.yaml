@@ -121,21 +121,30 @@ on:
                 auspice/
                 logs/
 
-          The output will always include a "build.log" file which contains log
-          messages from the `nextstrain build` command. The envdir created to
-          pass environment variables to the build runtime will always be
-          excluded from the output to prevent secrets from being leaked.
+          The default paths included in the artifact are:
+
+            build.log
+            auspice/
+            results/
+            benchmarks/
+            logs/
+            .snakemake/log/
+
+          The "build.log" contains log messages from the `nextstrain build` command.
+          The other paths are common output paths for Nextstrain builds.
+          If a path does not exist in your build, then the action will still
+          succeed and will print out a warning for the non-existent file(s).
+          Use an exclude pattern for any of the default paths that you would like to
+          exclude from the artifact (e.g. !build.log).
+
+          NOTE: The envdir created to pass environment variables to the build
+          runtime will always be excluded from the output to prevent secrets
+          from being leaked.
 
           This is not supported for builds on AWS Batch because the workflow
           detaches from the build. Please use the `nextstrain build` command
           locally to reattach to AWS Batch builds to download outputs.
         type: string
-        default: |
-          auspice/
-          results/
-          benchmarks/
-          logs/
-          .snakemake/log/
         required: false
 
     secrets:
@@ -276,5 +285,10 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: |
             build.log
+            auspice/
+            results/
+            benchmarks/
+            logs/
+            .snakemake/log/
             ${{ inputs.artifact-paths }}
             !${{ env.ENV_DIR }}
