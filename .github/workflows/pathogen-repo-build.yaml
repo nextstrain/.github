@@ -156,7 +156,7 @@ on:
         required: false
 
 env:
-  BUILD_DIR: build-dir
+  NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
   ENV_DIR: env.d
 
 jobs:
@@ -175,26 +175,29 @@ jobs:
     needs: workflow-context
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout build repository
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ inputs.repo }}
+
+      # Need to run this after the build repo is cloned so that cloning the
+      # build repo does not overwrite the .git dir and remove the extra support files
+      # that we need from nextstrain/.github repo
       - name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
         uses: actions/checkout@v3
         with:
           repository: ${{ needs.workflow-context.outputs.repository }}
           ref: ${{ needs.workflow-context.outputs.sha }}
+          path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
 
       - name: Setup runtime ${{ inputs.runtime }}
-        uses: ./actions/setup-nextstrain-cli
+        uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
           runtime: ${{ inputs.runtime }}
         # Required to set up aws-batch as default runtime
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-      - name: Checkout build repository
-        uses: actions/checkout@v3
-        with:
-          repository: ${{ inputs.repo }}
-          path: ${{ env.BUILD_DIR }}
 
       - if: inputs.env
         name: Set environment variables
@@ -204,7 +207,7 @@ jobs:
           # shellcheck disable=SC2154
 
           echo "$env"
-          | ./bin/yaml-to-envvars
+          | "$NEXTSTRAIN_GITHUB_DIR"/bin/yaml-to-envvars
           | tee -a "$GITHUB_ENV"
 
       - name: Set secrets as environment variables
@@ -215,7 +218,7 @@ jobs:
 
           echo "$secrets"
           | jq 'del(.github_token)'
-          | ./bin/json-to-envvars
+          | "$NEXTSTRAIN_GITHUB_DIR"/bin/json-to-envvars
           | tee -a "$GITHUB_ENV"
 
       - name: Set build runtime environment variables
@@ -230,7 +233,7 @@ jobs:
 
           # read exits with 1 when it encounters EOF
           read -a varnames -r -d $'\0' <<<"$envvars $secrets" || true
-          ./bin/write-envdir "$BUILD_DIR/$ENV_DIR" "${varnames[@]}"
+          "$NEXTSTRAIN_GITHUB_DIR"/bin/write-envdir "$ENV_DIR" "${varnames[@]}"
 
       - name: Run build via ${{ inputs.runtime }}
         env:
@@ -248,7 +251,7 @@ jobs:
             ${memory:+--memory="$memory"} \
             ${detach:+--detach} \
             --exec env \
-            "$BUILD_DIR" \
+            . \
               envdir "$ENV_DIR" snakemake \
               --cores "$cpus" \
               ${{ inputs.build-args }} \
@@ -263,30 +266,8 @@ jobs:
       - if: env.AWS_BATCH_JOB_ID
         name: Generate AWS Batch summary
         run: |
-          ./bin/interpolate-env < ./text-templates/attach-aws-batch.md \
+          "$NEXTSTRAIN_GITHUB_DIR"/bin/interpolate-env < "$NEXTSTRAIN_GITHUB_DIR"/text-templates/attach-aws-batch.md \
           > "$GITHUB_STEP_SUMMARY"
-
-      - if: always()
-        id: prefix-paths
-        name: Prefix artifact paths with ${{ env.BUILD_DIR }}/
-        env:
-          paths: ${{ inputs.artifact-paths }}
-        run: |
-          prefixed_paths=$(
-            yq -n '
-                strenv(paths)
-              | trim
-              | split("\n")
-              | .[] |= env(BUILD_DIR) + "/" + .
-              | join("\n")
-            '
-          )
-
-          {
-            echo "paths<<__EOF__"
-            echo "$prefixed_paths"
-            echo "__EOF__"
-          } >> "$GITHUB_OUTPUT"
 
       - if: always()
         uses: actions/upload-artifact@v3
@@ -295,5 +276,5 @@ jobs:
           name: ${{ inputs.artifact-name }}
           path: |
             build.log
-            ${{ steps.prefix-paths.outputs.paths }}
-            !${{env.BUILD_DIR}}/${{ env.ENV_DIR }}
+            ${{ inputs.artifact-paths }}
+            !${{ env.ENV_DIR }}
