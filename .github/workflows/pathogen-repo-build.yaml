@@ -28,6 +28,14 @@ on:
           Nextstrain runtime under which to run the build.
           Currently only supports docker, conda, and aws-batch.
           Defaults to "docker".
+
+          The aws-batch runtime requires the secrets:
+
+          - AWS_ACCESS_KEY_ID
+          - AWS_SECRET_ACCESS_KEY
+
+          They must be defined in the repo's Actions secrets and passed to this
+          workflow with `secrets: inherit`.
         type: string
         default: docker
         required: false
@@ -48,7 +56,8 @@ on:
           consider using the `--detach` flag for the aws-batch runtime.
 
           All environment variables provided via the env input and all secrets
-          provided can be passed to the build runtime via the `--env` option.
+          provided via `secrets: inherit` can be passed to the build runtime
+          via the `--env` option.
         type: string
         default: nextstrain build .
         required: false
@@ -122,23 +131,6 @@ on:
           detaches from the build. Please use the `nextstrain build` command
           locally to reattach to AWS Batch builds to download outputs.
         type: string
-        required: false
-
-    secrets:
-      AWS_ACCESS_KEY_ID:
-        description: AWS access key ID, required for aws-batch runtime only
-        required: false
-
-      AWS_SECRET_ACCESS_KEY:
-        description: AWS secret access key, required for aws-batch runtime only
-        required: false
-
-      GITHUB_PAT:
-        description: GitHub personal access token, required for additional permissions such as dispatching cross repo workflows
-        required: false
-
-      SLACK_TOKEN:
-        description: Slack Bot User OAuth Token, required for Slack notifications only
         required: false
 
 env:

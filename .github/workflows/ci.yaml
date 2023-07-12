@@ -59,11 +59,7 @@ jobs:
       artifact-name: build-output-${{ matrix.runtime }}
       env: |
         BOGUS_ENVVAR: BOGUS_ENVVAR
-    secrets:
-      AWS_ACCESS_KEY_ID: BOGUS_ACCESS_KEY_ID
-      AWS_SECRET_ACCESS_KEY: BOGUS_SECRET_ACCESS_KEY
-      GITHUB_PAT: BOGUS_GITHUB_TOKEN
-      SLACK_TOKEN: BOGUS_SLACK_TOKEN
+    secrets: inherit
 
   lint:
     runs-on: ubuntu-latest
