@@ -32,6 +32,27 @@ on:
         default: docker
         required: false
 
+      run:
+        description: >-
+          The full `nextstrain build` command to run for the build.
+          Defaults to `nextstrain build .`
+
+          Use the runtime input to select the runtime for the build instead of
+          the runtime selection options to ensure that the runtime is properly
+          set up within the GitHub Action job.
+
+          The pathogen repo is cloned to the top level of the working directory
+          of the GitHub Action, so use `.` to point to the pathogen repo directory.
+
+          If your build runs longer than the 6 hour limit for GitHub Action jobs,
+          consider using the `--detach` flag for the aws-batch runtime.
+
+          All environment variables provided via the env input and all secrets
+          provided can be passed to the build runtime via the `--env` option.
+        type: string
+        default: nextstrain build .
+        required: false
+
       env:
         description: >-
           Environment variables to set for this reusable workflow since
@@ -53,46 +74,6 @@ on:
 
           Do not use for secrets!  Instead, pass them via GitHub Action's
           dedicated secrets mechanism.
-        type: string
-        default: ""
-        required: false
-
-      cpus:
-        description: >-
-          Number of CPUs/cores/threads/jobs to utilize at once.
-          Will be passed to the `--cpus` option for `nextstrain build` and the
-          `--cores` option for Snakemake.
-
-          See `nextstrain build` docs for more details:
-          https://docs.nextstrain.org/projects/cli/page/commands/build/
-
-          If using the "aws-batch" runtime, see the AWS Batch docs for details
-          on the available CPUs for C5 instances:
-          https://aws.amazon.com/ec2/instance-types/c5/
-        type: number
-        default: 2
-        required: false
-
-      memory:
-        description: >-
-          Amount of memory to make available to the build.
-          Units of b, kb, mb, gb, kib, mib, gib are supported.
-          Passed to the `--memory` option for `nextstrain build`.
-
-          See `nextstrain build` docs for more details:
-          https://docs.nextstrain.org/projects/cli/page/commands/build/
-
-          If using the "aws-batch" runtime, see the AWS Batch C5 for details
-          on the available memory for C5 instances:
-          https://aws.amazon.com/ec2/instance-types/c5/
-        type: string
-        required: false
-
-      build-args:
-        description: >-
-          Additional arguments to pass to Snakemake. Please remove any
-          additional `--cores N` arguments and use the `cpus` input of this
-          workflow.
         type: string
         default: ""
         required: false
@@ -137,10 +118,6 @@ on:
           Use an exclude pattern for any of the default paths that you would like to
           exclude from the artifact (e.g. !build.log).
 
-          NOTE: The envdir created to pass environment variables to the build
-          runtime will always be excluded from the output to prevent secrets
-          from being leaked.
-
           This is not supported for builds on AWS Batch because the workflow
           detaches from the build. Please use the `nextstrain build` command
           locally to reattach to AWS Batch builds to download outputs.
@@ -166,7 +143,6 @@ on:
 
 env:
   NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
-  ENV_DIR: env.d
 
 jobs:
   workflow-context:
@@ -202,6 +178,7 @@ jobs:
       - name: Setup runtime ${{ inputs.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
+          cli-version: ">=7.1.0"
           runtime: ${{ inputs.runtime }}
         # Required to set up aws-batch as default runtime
         env:
@@ -230,41 +207,11 @@ jobs:
           | "$NEXTSTRAIN_GITHUB_DIR"/bin/json-to-envvars
           | tee -a "$GITHUB_ENV"
 
-      - name: Set build runtime environment variables
-        env:
-          env: ${{ inputs.env || '[]' }}
-          secrets: ${{ toJson(secrets) || '' }}
-        run: |
-          # shellcheck disable=SC2154
-
-          envvars=$(echo "$env" | yq 'keys | join(" ")')
-          secrets=$(echo "$secrets" | jq -r 'del(.github_token) | keys | join(" ")')
-
-          # read exits with 1 when it encounters EOF
-          read -a varnames -r -d $'\0' <<<"$envvars $secrets" || true
-          "$NEXTSTRAIN_GITHUB_DIR"/bin/write-envdir "$ENV_DIR" "${varnames[@]}"
-
       - name: Run build via ${{ inputs.runtime }}
-        env:
-          cpus: ${{ inputs.cpus }}
-          memory: ${{ inputs.memory }}
-          detach: ${{ inputs.runtime == 'aws-batch' || null }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          # shellcheck disable=SC2154
           set -x
 
-          nextstrain build \
-            --cpus "$cpus" \
-            ${memory:+--memory="$memory"} \
-            ${detach:+--detach} \
-            --exec env \
-            . \
-              envdir "$ENV_DIR" snakemake \
-              --cores "$cpus" \
-              ${{ inputs.build-args }} \
-          | tee build.log
+          ${{ inputs.run }} |& tee build.log
 
       - if: ${{ inputs.runtime == 'aws-batch' }}
         name: Get AWS Batch job id
@@ -291,4 +238,3 @@ jobs:
             logs/
             .snakemake/log/
             ${{ inputs.artifact-paths }}
-            !${{ env.ENV_DIR }}

@@ -55,6 +55,7 @@ jobs:
     with:
       repo: nextstrain/zika-tutorial
       runtime: ${{ matrix.runtime }}
+      run: nextstrain build --env BOGUS_ENVVAR .
       artifact-name: build-output-${{ matrix.runtime }}
       env: |
         BOGUS_ENVVAR: BOGUS_ENVVAR
