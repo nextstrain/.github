@@ -200,10 +200,13 @@ jobs:
           | tee -a "$GITHUB_ENV"
 
       - name: Run build via ${{ inputs.runtime }}
+        env:
+          NEXTSTRAIN_BUILD_COMMAND: ${{ inputs.run }}
         run: |
+          # shellcheck disable=SC2154
           set -x
 
-          ${{ inputs.run }} |& tee build.log
+          eval "$NEXTSTRAIN_BUILD_COMMAND" |& tee build.log
 
       - if: ${{ inputs.runtime == 'aws-batch' }}
         name: Get AWS Batch job id
