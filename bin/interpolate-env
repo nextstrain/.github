@@ -1,0 +1,12 @@
+#!/bin/bash
+# usage: interpolate-env
+#
+# Replaces ${x} in text from stdin with value of environment variable "x" and
+# outputs the updated text to stdout.
+#
+# Modified from the conda-base repo's CI workflow:
+# https://github.com/nextstrain/conda-base/blob/a2da0f5ef7e95f9db31678c2df00bd312c7b754a/.github/workflows/ci.yaml#L109-L111
+#
+set -eou pipefail
+
+exec perl -pe 's/\$\{(.+?)\}/$ENV{$1}/ge'

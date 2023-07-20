@@ -1,0 +1,48 @@
+name: Get workflow context
+description: >-
+  This Github Actions action is intended to be called by our reusable workflows
+  to access the reusable workflow's own context. This is useful for reusable
+  workflows that invoke actions and/or scripts that should be accessed locally
+  at the same ref. This workflow uses GitHub's OIDC token to get the workflow
+  information that we want, so the calling workflow must set the permission
+  setting `id-token: write`¹.
+
+  This is necessary since GitHub currently does not support accessing the
+  reusable workflow's context within itself using a GitHub context variable.
+  According to the GitHub Action docs²:
+
+    When a reusable workflow is triggered by a caller workflow, the github
+    context is always associated with the caller workflow.
+
+  There are existing issues requesting this feature, so we can replace this
+  action when they get resolved:
+
+    - https://github.com/actions/toolkit/issues/1264
+    - https://github.com/actions/runner/issues/2417
+
+  ¹ https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect#adding-permissions-settings
+  ² https://docs.github.com/actions/using-workflows/reusing-workflows
+
+permissions:
+  id-token: write
+
+outputs:
+  sha:
+    description: "Workflow sha"
+    value: ${{ steps.context.outputs.sha }}
+  repository:
+    description: "Workflow repository"
+    value: ${{ steps.context.outputs.repository }}
+
+runs:
+  using: composite
+  steps:
+    - id: context
+      uses: actions/github-script@v6
+      with:
+        script: |
+          let idToken = await core.getIDToken();
+          let unvalidatedClaims = JSON.parse(atob(idToken.split(".", 2)[1]));
+
+          core.setOutput("sha", unvalidatedClaims.job_workflow_sha);
+          core.setOutput("repository", unvalidatedClaims.job_workflow_ref.replace(/\/\.github\/workflows\/.*$/, ""));

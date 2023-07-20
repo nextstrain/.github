@@ -35,6 +35,7 @@ Invoked by our GitHub Actions workflows, including the reusable workflows below.
   ([README](actions/setup-ssh/README.md))
 - [Setup debugger](actions/setup-debugger/action.yaml) for interactive debugging of workflow jobs
   ([README](actions/setup-debugger/README.md))
+- [Workflow context](actions/workflow-context/action.yaml)
 
 See also GitHub's [documentation on creating custom actions](https://docs.github.com/en/actions/creating-actions/about-custom-actions).
 
@@ -51,6 +52,9 @@ Invoked by other repos.
 
 - Sync RTD redirects
   ([workflow](.github/workflows/sync-rtd-redirects.yaml))
+
+- Pathogen repo build
+  ([workflow](.github/workflows/pathogen-repo-build.yaml))
 
 See also GitHub's [documentation on reusing workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
 
@@ -82,6 +86,10 @@ Used to setup other repos.
   ([template](workflow-templates/debugging-runner.yaml),
   [properties](workflow-templates/debugging-runner.properties.json))
 
+- Pathogen repo build
+  ([template](workflow-templates/pathogen-repo-build.yaml),
+  [properties](workflow-templates/pathogen-repo-build.properties.json))
+
 See also GitHub's [documentation on starter workflows](https://docs.github.com/en/actions/using-workflows/creating-starter-workflows-for-your-organization).
 
 
@@ -89,3 +97,18 @@ See also GitHub's [documentation on starter workflows](https://docs.github.com/e
 
 - CI tests for the actions and reusable workflows above
   ([workflow](.github/workflows/ci.yaml))
+
+
+## Workflow scripts
+
+Executable scripts that are used in our workflows.
+
+- [interpolate-env](bin/interpolate-env)
+- [json-to-envvars](bin/json-to-envvars)
+- [yaml-to-envvars](bin/yaml-to-envvars)
+
+## Workflow text templates
+
+Text templates for messages and summaries in our workflows.
+
+- [attach-aws-batch](text-templates/attach-aws-batch.md)

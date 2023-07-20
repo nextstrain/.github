@@ -45,6 +45,22 @@ jobs:
       docs-directory: docs/
       pip-install-target: .[dev]
 
+  test-pathogen-repo-build:
+    permissions:
+      id-token: write
+    strategy:
+      matrix:
+        runtime: [docker, conda]
+    uses: ./.github/workflows/pathogen-repo-build.yaml
+    with:
+      repo: nextstrain/zika-tutorial
+      runtime: ${{ matrix.runtime }}
+      run: nextstrain build --env BOGUS_ENVVAR .
+      artifact-name: build-output-${{ matrix.runtime }}
+      env: |
+        BOGUS_ENVVAR: BOGUS_ENVVAR
+    secrets: inherit
+
   lint:
     runs-on: ubuntu-latest
     steps:

@@ -1,0 +1,10 @@
+name: Pathogen repo build
+
+on: workflow_dispatch
+
+jobs:
+  run-build:
+    # The `id-token: write` permission is required for this workflow.
+    permissions:
+      id-token: write
+    uses: nextstrain/.github/.github/workflows/pathogen-repo-build.yaml@master
