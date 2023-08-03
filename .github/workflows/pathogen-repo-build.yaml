@@ -233,3 +233,13 @@ jobs:
             logs/
             .snakemake/log/
             ${{ inputs.artifact-paths }}
+
+      # Send Slack notification about failure if the workflow has access to Slack variables
+      - if: ${{ failure() && env.slack-available == 'true'  }}
+        # The secrets context is not allowed in "if:" conditions, so we must
+        # launder it thru env. Note that we not depending on the SLACK_* env vars
+        # because we don't want to depend on the "Set environment variables" step.
+        env:
+          slack-available: ${{ secrets.SLACK_TOKEN != '' && vars.SLACK_CHANNELS != '' }}
+        name: Notify pipeline failed
+        uses: ./.git/nextstrain/.github/actions/notify-on-failure
