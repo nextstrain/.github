@@ -1,0 +1,99 @@
+#!/bin/bash
+set -euo pipefail
+
+devel="$(dirname "$0")"
+
+main() {
+    local in out
+
+    if [[ "$1" == *.in ]]; then
+        in="$1"
+        out="${1%.in}"
+    else
+        in="$1.in"
+        out="$1"
+    fi
+
+    local generated=0
+    echo "generating $out"
+
+    if git-unmerged "$in"; then
+        echo "error: input file $in is unmerged; please resolve conflicts first" >&2
+        exit 1
+    fi
+
+    if [[ -f "$in" ]]; then
+        generated=1
+        "$devel"/explode-yaml < "$in" > "$out" &
+    fi
+
+    if git-tracked "$in"; then
+        generated=1
+        "$devel"/explode-yaml \
+            < <(git cat-file blob :"$in") \
+            > >(git-add-stdin-as "$out") \
+            &
+    fi
+
+    wait
+
+    if [[ "$generated" -eq 0 ]]; then
+        echo "error: input file $in neither exists on disk nor is it tracked by git" >&2
+        exit 1
+    fi
+}
+
+git-unmerged() {
+    # See git-ls-files(1) and git-read-tree(1) for more details on what we're
+    # reading here from Git's index.  The gist of it is that when a file X is
+    # unmerged, it will show up in the index as three entries with the third
+    # field (stage) being 1, 2, and 3:
+    #
+    #   100644 78981922613b2afb6025042ff6bd878ac1994e85 1 X
+    #   100644 d00491fd7e5bb6fa28c517a0bb32b8b506539d4d 2 X
+    #   100644 0cfbf08886fca9a91cb753ec8734c84fcbe52c9f 3 X
+    #
+    # In a normal state, i.e. without merge conflicts or after conflicts have
+    # been resolved and recorded, then it shows up as a single entry where
+    # stage is 0:
+    #
+    #   100644 78981922613b2afb6025042ff6bd878ac1994e85 0 X
+    #
+    git ls-files --stage -z -- "$1" | while read -rd $'\0' mode object stage path; do
+        if [[ "$stage" != 0 ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+git-tracked() {
+    git ls-files --stage --error-unmatch -- "$1" >/dev/null 2>&1
+}
+
+git-add-stdin-as() {
+    # Stages the contents on stdin as the given path in Git's index, without
+    # touching the working tree.
+    #
+    # Originally written for <https://github.com/nextstrain/cli/blob/25075fae/devel/release>.
+    local path="$1"
+    local repo_path mode object
+
+    # Convert filesystem $path to a canonicalized path from the root of the
+    # repo.  This is required for the commands below.
+    repo_path="$(git ls-files --full-name --error-unmatch -- "$path")"
+
+    # Use existing mode (e.g. 100644)
+    mode="$(git ls-tree --format "%(objectmode)" HEAD :/"$repo_path")"
+
+    # Create new object in git's object database from the contents on stdin.
+    # Using --path ensures that any filters (e.g. eol textconv or otherwise)
+    # that would apply to $path are applied to the contents on stdin too.
+    object="$(git hash-object -w --stdin --path "$repo_path")"
+
+    # Stage the new object as an update to $path (as if with `git add` after
+    # actually modifying $path).
+    git update-index --cacheinfo "$mode,$object,$repo_path"
+}
+
+main "$@"
