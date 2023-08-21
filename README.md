@@ -45,7 +45,8 @@ See also GitHub's [documentation on creating custom actions](https://docs.github
 Invoked by other repos.
 
 - CI for pathogen repos
-  ([workflow](.github/workflows/pathogen-repo-ci.yaml))
+  ([workflow source](.github/workflows/pathogen-repo-ci.yaml.in),
+   [workflow compiled](.github/workflows/pathogen-repo-ci.yaml))
 
 - CI for docs
   ([workflow](.github/workflows/docs-ci.yaml))

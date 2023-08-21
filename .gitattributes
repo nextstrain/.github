@@ -2,3 +2,4 @@
 # routinely show the diff of.  A diff can be forced as needed, e.g. with `git
 # diff --text`.
 /.github/workflows/pathogen-repo-build.yaml -diff
+/.github/workflows/pathogen-repo-ci.yaml -diff
