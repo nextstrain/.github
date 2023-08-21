@@ -110,6 +110,103 @@ on:
           This is not supported for builds on AWS Batch because the workflow detaches from the build. Please use the `nextstrain build` command locally to reattach to AWS Batch builds to download outputs.
         type: string
         required: false
+  workflow_dispatch:
+    inputs:
+      runtime:
+        description: >-
+          Nextstrain runtime under which to run the build. Currently only supports docker, conda, and aws-batch. Defaults to "docker".
+
+          The aws-batch runtime requires AWS credentials.  These may come directly from secrets or indirectly from assuming a role via GitHub Actions' OIDC provider.
+
+          The following secrets are used if present:
+
+          - AWS_ACCESS_KEY_ID - AWS_SECRET_ACCESS_KEY
+
+          They must be defined in the repo's Actions secrets and passed to this workflow with `secrets: inherit`.
+
+          If no secrets are present, the GitHubActionsRoleNextstrainBatchJobs role is assumed (in both senses of the verb).
+        type: string
+        default: docker
+        required: false
+      run:
+        description: >-
+          The full `nextstrain build` command to run for the build. Defaults to `nextstrain build .`
+
+          Use the runtime input to select the runtime for the build instead of the runtime selection options to ensure that the runtime is properly set up within the GitHub Action job.
+
+          The pathogen repo is cloned to the top level of the working directory of the GitHub Action, so use `.` to point to the pathogen repo directory.
+
+          If your build runs longer than the 6 hour limit for GitHub Action jobs, consider using the `--detach` flag for the aws-batch runtime.
+
+          All environment variables provided via the env input and all secrets provided via `secrets: inherit` can be passed to the build runtime via the `--env` option.  If AWS credentials were acquired by the GitHub Action job via role assumption, the following environment variables are also available to be passed:
+
+
+            - AWS_ACCESS_KEY_ID
+            - AWS_SECRET_ACCESS_KEY
+            - AWS_SESSION_TOKEN
+        type: string
+        default: nextstrain build .
+        required: false
+      env:
+        description: >-
+          Environment variables to set for this reusable workflow since environment variables in the caller workflow are not propagated to reusable workflows. This is expected to be a string containing YAML.
+
+          This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
+
+
+            with:
+              env: |
+                FOO: bar
+                I_CANT_BELIEVE: "it's not YAML"
+                would_you_believe: |
+                  it's
+                  not
+                  yaml
+
+          Do not use for secrets!  Instead, pass them via GitHub Action's dedicated secrets mechanism.
+        type: string
+        default: ""
+        required: false
+      artifact-name:
+        description: >-
+          Name to use for the build output artifact uploaded at end of the workflow.
+
+          If you're invoking this workflow multiple times from the same calling workflow, you should set this. Otherwise, the default "build-outputs" is probably fine.
+        type: string
+        default: build-outputs
+        required: false
+      artifact-paths:
+        description: >-
+          List of paths to include in the build output artifact uploaded at the end of the workflow, as a string following the format of the `paths` input of the `actions/upload-artifact` action. For example:
+
+
+            with:
+              artifact-paths: |
+                results/
+                auspice/
+                logs/
+
+          The default paths included in the artifact are:
+
+
+            build.log
+            auspice/
+            results/
+            benchmarks/
+            logs/
+            .snakemake/log/
+
+          The "build.log" contains log messages from the `nextstrain build` command. The other paths are common output paths for Nextstrain builds. If a path does not exist in your build, then the action will still succeed and will print out a warning for the non-existent file(s). Use an exclude pattern for any of the default paths that you would like to exclude from the artifact (e.g. !build.log).
+
+          This is not supported for builds on AWS Batch because the workflow detaches from the build. Please use the `nextstrain build` command locally to reattach to AWS Batch builds to download outputs.
+        type: string
+        required: false
+      repo:
+        description: >-
+          Repository name with owner (e.g. nextstrain/zika).
+        type: string
+        default: ""
+        required: true
 env:
   NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
 permissions:

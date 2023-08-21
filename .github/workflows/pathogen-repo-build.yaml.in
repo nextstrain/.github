@@ -14,7 +14,7 @@ defaults:
 
 on:
   workflow_call:
-    inputs:
+    inputs: &inputs
       repo:
         description: >-
           Repository name with owner (e.g. nextstrain/zika). Defaults to the
@@ -145,6 +145,16 @@ on:
           locally to reattach to AWS Batch builds to download outputs.
         type: string
         required: false
+
+  workflow_dispatch:
+    inputs:
+      <<: *inputs
+      repo:
+        description: >-
+          Repository name with owner (e.g. nextstrain/zika).
+        type: string
+        default: ""
+        required: true
 
 env:
   NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
