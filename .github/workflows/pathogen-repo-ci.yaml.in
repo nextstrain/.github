@@ -14,7 +14,7 @@ defaults:
 
 on:
   workflow_call:
-    inputs:
+    inputs: &inputs
       repo:
         description: >-
           Repository name with owner (e.g. nextstrain/zika).  Defaults to the
@@ -88,6 +88,16 @@ on:
         type: boolean
         default: false
         required: false
+
+  workflow_dispatch:
+    inputs:
+      <<: *inputs
+      repo:
+        description: >-
+          Repository name with owner (e.g. nextstrain/zika).
+        type: string
+        default: ""
+        required: true
 
 permissions:
   contents: read

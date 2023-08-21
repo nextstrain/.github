@@ -71,6 +71,64 @@ on:
         type: boolean
         default: false
         required: false
+  workflow_dispatch:
+    inputs:
+      env:
+        description: >-
+          Additional environment variables to set before the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
+
+
+            with:
+              env: |
+                FOO: bar
+                I_CANT_BELIEVE: "it's not YAML"
+                would_you_believe: |
+                  it's
+                  not
+                  yaml
+
+          Do not use for secrets!  Instead, pass them via GitHub Action's dedicated secrets mechanism.
+        type: string
+        default: ""
+        required: false
+      runtimes:
+        description: >-
+          List of Nextstrain runtimes under which to run the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
+
+
+            with:
+              runtimes: |
+                - docker
+                - conda
+
+          Defaults to "docker" and "conda".  One job per runtime will be run.
+        type: string
+        default: |
+          - docker
+          - conda
+        required: false
+      artifact-name:
+        description: >-
+          A base name to use for the uploaded artifacts from the build. This will be concatenated with the runtime name used to invoke the build to generate the full artifact file name.
+
+          Defaults to `ci-outputs`.
+
+          N.b., you almost certainly don't need to change this, unless you're running multiple invocations of this action in a single workflow. Then you should provide unique values to ensure you can access the artifacts from all the builds you're doing.
+        type: string
+        default: ci-outputs
+        required: false
+      continue-on-error:
+        description: >-
+          Pass thru for <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontinue-on-error>.
+        type: boolean
+        default: false
+        required: false
+      repo:
+        description: >-
+          Repository name with owner (e.g. nextstrain/zika).
+        type: string
+        default: ""
+        required: true
 permissions:
   contents: read
   id-token: write
