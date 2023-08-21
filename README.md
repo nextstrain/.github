@@ -114,6 +114,12 @@ Text templates for messages and summaries in our workflows.
 - [attach-aws-batch](text-templates/attach-aws-batch.md)
 
 
+## Development tools for this repo itself
+
+- Linting to ensure the README stays complete
+  ([devel/check-readme](devel/check-readme))
+
+
 ## Configuration for this repo itself
 
 - [Dependabot configuration](.github/dependabot.yml)
