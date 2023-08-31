@@ -11,7 +11,7 @@ Type `#` followed the name of an issue and GitHub will auto-suggest the issue nu
 ¹ https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests
 -->
 
-## Testing
+## Checklist
 
 <!--
 Make sure checks are successful at the bottom of the PR.
