@@ -8,7 +8,7 @@ description: >-
   repos when they need a working copy of the Nextstrain CLI (the `nextstrain`
   program) installed and don't particularly care about the exact Python
   environment in which its installed.
-  
+
   For example, this is typically the case when the workflow's primary step
   invokes `nextstrain build` to run a build in a container runtime (locally via
   Docker or remotely via AWS Batch).  Workflows that are more complex (e.g.
@@ -64,6 +64,9 @@ runs:
       shell: bash
       env:
         runtime: ${{ inputs.runtime }}
+
+    - run: nextstrain update
+      shell: bash
 
     - run: nextstrain version --verbose
       shell: bash
