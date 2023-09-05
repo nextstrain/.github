@@ -67,6 +67,7 @@ runs:
 
     - run: nextstrain update
       shell: bash
+      continue-on-error: true
 
     - run: nextstrain version --verbose
       shell: bash
