@@ -212,7 +212,7 @@ jobs:
         name: Get AWS Batch job id
         id: aws-batch
         run: |
-          echo "AWS_BATCH_JOB_ID=$(tail -n1 build.log | sed -nE 's/.+attach ([-a-f0-9]+).+/\1/p')" >> "$GITHUB_ENV"
+          echo "AWS_BATCH_JOB_ID=$(sed -nE 's/.+AWS Batch Job ID\:.+ ([-a-f0-9]+)$/\1/p' < build.log)" >> "$GITHUB_ENV"
 
       - if: env.AWS_BATCH_JOB_ID
         name: Generate AWS Batch summary
