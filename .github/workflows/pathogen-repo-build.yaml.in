@@ -59,8 +59,10 @@ on:
           The pathogen repo is cloned to the top level of the working directory
           of the GitHub Action, so use `.` to point to the pathogen repo directory.
 
-          If your build runs longer than the 6 hour limit for GitHub Action jobs,
-          consider using the `--detach` flag for the aws-batch runtime.
+          If your build runs longer than the 6 hour limit for a single GitHub
+          Action job, then use the aws-batch runtime and the `--detach` flag.
+          Subsequent chained jobs will be automatically used to wait on the
+          remote build for up to 24 hours total.
 
           All environment variables provided via the env input and all secrets
           provided via `secrets: inherit` can be passed to the build runtime
@@ -184,7 +186,8 @@ jobs:
       # Need to run this after the build repo is cloned so that cloning the
       # build repo does not overwrite the .git dir and remove the extra support files
       # that we need from nextstrain/.github repo
-      - name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
+      - &checkout-workflow-support
+        name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
         uses: actions/checkout@v4
         with:
           repository: ${{ needs.workflow-context.outputs.repository }}
@@ -213,7 +216,8 @@ jobs:
           | "$NEXTSTRAIN_GITHUB_DIR"/bin/json-to-envvars
           | tee -a "$GITHUB_ENV"
 
-      - if: inputs.runtime == 'aws-batch'
+      - &setup-aws-credentials
+        if: inputs.runtime == 'aws-batch'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
@@ -222,10 +226,11 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ACCESS_KEY_ID == '' && 'arn:aws:iam::827581582529:role/GitHubActionsRoleNextstrainBatchJobs' || '' }}
           role-duration-seconds: 43200 # seconds, or 12 hours
 
-      - name: Setup runtime ${{ inputs.runtime }}
+      - &setup-runtime
+        name: Setup runtime ${{ inputs.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
-          cli-version: ">=7.1.0"
+          cli-version: ">=7.4.0"
           runtime: ${{ inputs.runtime }}
 
       - name: Run build via ${{ inputs.runtime }}
@@ -262,3 +267,124 @@ jobs:
             logs/
             .snakemake/log/
             ${{ inputs.artifact-paths }}
+
+    outputs:
+      AWS_BATCH_JOB_ID: ${{ env.AWS_BATCH_JOB_ID }}
+
+  # Wait for up to 6 hours (the maximum GitHub Actions job timeout¹) for the
+  # AWS Batch job to finish.
+  #
+  # ¹ <https://docs.github.com/en/actions/learn-github-actions/usage-limits-billing-and-administration#usage-limits>
+  #   <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idtimeout-minutes>
+  wait-1: &wait
+    needs: [run-build, workflow-context]
+    if: needs.run-build.outputs.AWS_BATCH_JOB_ID
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      # Uses needs.workflow-context.outputs
+      - *checkout-workflow-support
+      - *setup-aws-credentials
+      - *setup-runtime
+
+      - id: attach
+        name: Attach to AWS Batch job
+        env:
+          AWS_BATCH_JOB_ID: ${{ needs.run-build.outputs.AWS_BATCH_JOB_ID }}
+        run: |
+          # When a running process is to be cancelled (e.g. due to either user
+          # request or job timeout), GitHub Actions sends it SIGINT and waits
+          # 7.5s for it to exit.¹  We immediately detach on interrupt, letting
+          # the next wait-N job in our chain pick it back up (if this job timed
+          # out) or the cancellation job (if by user request).
+          #
+          # ¹ <https://docs.github.com/en/actions/managing-workflow-runs/canceling-a-workflow#steps-github-takes-to-cancel-a-workflow-run>
+          exec nextstrain build \
+            --aws-batch \
+            --attach "$AWS_BATCH_JOB_ID" \
+            --detach-on-interrupt \
+            --no-download
+
+    # Allow the workflow to be considered successful even if this job errors
+    # due to cancellation (timing out).  Unfortunately, this doesn't
+    # distinguish between error from cancellation and error from command
+    # failure, so we work around that below.
+    continue-on-error: true
+
+    # Emit a "conclusion" output for the job that's based on the built-in
+    # conclusion (success, failure, cancelled) of the "attach" step above.
+    # This is the conclusion we care about for the job since the job's own
+    # "conclusion" is masked/transformed by "continue-on-error: true" above.
+    outputs:
+      attach-step-conclusion: ${{ steps.attach.conclusion }}
+
+  # Wait for up to another 6 hours (hours 6–12) if the preceding wait-N job
+  # timed out while attached to the AWS Batch job.
+  wait-2:
+    <<: *wait
+    needs: [wait-1, run-build, workflow-context]
+    if: needs.wait-1.outputs.attach-step-conclusion == 'cancelled'
+
+  # 12–18 hours
+  wait-3:
+    <<: *wait
+    needs: [wait-2, run-build, workflow-context]
+    if: needs.wait-2.outputs.attach-step-conclusion == 'cancelled'
+
+  # 18–24 hours
+  wait-4:
+    <<: *wait
+    needs: [wait-3, run-build, workflow-context]
+    if: needs.wait-3.outputs.attach-step-conclusion == 'cancelled'
+
+  # Since the wait-N jobs use "continue-on-error: true" out of necessity (to
+  # avoid failing the whole workflow when they time out and get cancelled), we
+  # use a final job here to succeed or fail the whole workflow based on the
+  # aggregate of their "attach" step conclusions.
+  wait-conclusion:
+    needs: [wait-1, wait-2, wait-3, wait-4]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: All attach steps in wait-N jobs were successful (or skipped)
+        run: |
+          # shellcheck disable=SC2242
+
+          exit ${{ contains(needs.*.outputs.attach-step-conclusion, 'failure') && '1' || '0' }}
+
+      # XXX TODO: Jobs can fall off the end of our wait-N chain and appear to be
+      # successful/complete in GitHub but still running on AWS.  Probably very
+      # rare in reality, though, for an AWS job to take longer than 24h?
+      #   -trs, 12 Sept 2023
+
+  # Cancel the AWS Batch job if the GitHub workflow run is cancelled.
+  #
+  # We depend on the last wait-N job (wait-4) so that this job doesn't get
+  # skipped immediately after run-build.  It needs to be at the end of the
+  # chain.
+  cancellation:
+    needs: [wait-4, run-build, workflow-context]
+    if: cancelled()
+    runs-on: ubuntu-latest
+    steps:
+      # Uses needs.workflow-context.outputs
+      - *checkout-workflow-support
+      - *setup-aws-credentials
+      - *setup-runtime
+
+      - id: cancel
+        name: Cancel AWS Batch job
+        env:
+          AWS_BATCH_JOB_ID: ${{ needs.run-build.outputs.AWS_BATCH_JOB_ID }}
+        run: |
+          # `nextstrain` will stay attached while it waits for cancellation to
+          # occur, before finally exiting non-zero.  In the unlikely event that
+          # the job completes before cancellation can occur, it'll exit 0, and
+          # we want to treat that as an error.
+          nextstrain build --aws-batch --attach "$AWS_BATCH_JOB_ID" --cancel \
+            && exit 1 \
+            || exit 0
+
+    # The cancellation job may fail, but we don't want that to impact the
+    # overall workflow run status.
+    continue-on-error: true
