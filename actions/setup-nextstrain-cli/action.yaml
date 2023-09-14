@@ -37,28 +37,49 @@ inputs:
     default: ${{ runner.os == 'Linux' && 'docker' || runner.os == 'macOS' && 'conda' || '' }}
     required: false
 
+  # XXX TODO: Remove this in coordination with existing callers.  Callers must
+  # stop specifying it before we remove it here in order to not break.  I've
+  # audited all of our internal usages¹ of this action to check that they don't
+  # rely on the setup-python call and prepped those usages for the removal of
+  # this input.  There are also many external usages², mostly existing in forks
+  # of our repos.
+  #   -trs, 13 Feb 2024
+  #
+  # ¹ <https://github.com/search?q=org%3Anextstrain+%2Fsetup-nextstrain-cli%40master%2F+%28path%3A*.yaml+OR+path%3A*.yml%29&type=code&p=1>
+  # ² <https://github.com/search?q=%28NOT+org%3Anextstrain%29+%2Fsetup-nextstrain-cli%40master%2F+%28path%3A*.yaml+OR+path%3A*.yml%29&type=code&p=1>
+  #
   python-version:
     description: >-
-      Version of Python to use for Nextstrain CLI, as a string understood by
-      actions/setup-python.  Defaults to "3.9".
+      Do not use.  Deprecated and retained (for now) only for backwards
+      compatibility with existing callers.  Will be removed in the future, at
+      which point any callers that still specify a value will break.
     type: string
-    default: "3.9"
+    default: ""
     required: false
 
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "${{ inputs.python-version }}"
-
-    - run: python3 -m pip install --upgrade pip setuptools wheel
-      shell: bash
-
-    - run: python3 -m pip install --upgrade nextstrain-cli"$version"
-      shell: bash
+    - if: runner.os != 'Windows'
+      run: |
+        curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/"$OS" | bash
       env:
-        version: ${{ inputs.cli-version }}
+        OS: ${{ runner.os == 'Linux' && 'linux' || runner.os == 'macOS' && 'mac' || '' }}
+        VERSION: ${{ inputs.cli-version }}
+        DESTINATION: ${{ runner.temp }}/nextstrain-cli
+      shell: bash
+
+    - if: runner.os == 'Windows'
+      run: Invoke-RestMethod https://nextstrain.org/cli/installer/windows | Invoke-Expression
+      env:
+        VERSION: ${{ inputs.cli-version }}
+        DESTINATION: ${{ runner.temp }}/nextstrain-cli
+      shell: pwsh
+
+    - run: echo "$DESTINATION" | tee -a "$GITHUB_PATH"
+      env:
+        DESTINATION: ${{ runner.temp }}/nextstrain-cli
+      shell: bash
 
     - run: nextstrain version
       shell: bash
