@@ -65,9 +65,10 @@ runs:
       env:
         runtime: ${{ inputs.runtime }}
 
-    - run: nextstrain update
+    # TODO: Remove this once https://github.com/nextstrain/cli/issues/318 is resolved.
+    - if: inputs.runtime == 'conda'
+      run: nextstrain update
       shell: bash
-      continue-on-error: true
 
     - run: nextstrain version --verbose
       shell: bash
