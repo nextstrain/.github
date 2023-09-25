@@ -65,7 +65,7 @@ on:
 
       workflow-root:
         description: >-
-          Path to the root of the Snakemake workflow filder to run CI on.
+          Path to the root of the workflow folder (e.g. one that contains a Snakefile) to run CI on.
           Defaults to the root of the workflow repo.
         type: string
         default: ${{ github.workspace }}
