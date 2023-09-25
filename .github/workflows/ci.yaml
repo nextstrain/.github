@@ -33,6 +33,14 @@ jobs:
       build-args: __BOGUS_BUILD_TARGET__
       continue-on-error: true
 
+  test-expect-failure:
+    uses: ./.github/workflows/expect-failure.yaml
+    with:
+      action-name: ./.github/workflows/pathogen-repo-ci.yaml
+      action-args: |
+        repo: nextstrain/zika-tutorial
+        build-args: __BOGUS_BUILD_TARGET__
+
   test-docs-ci-conda:
     uses: ./.github/workflows/docs-ci.yaml
     with:

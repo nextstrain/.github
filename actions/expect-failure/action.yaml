@@ -1,0 +1,27 @@
+name: "Invert Action Outcome"
+description: "Inverts the success/failure outcome of a wrapped action"
+inputs:
+  action-name:
+    description: "The name of the action to wrap"
+    required: true
+  action-args:
+    description: "Arguments to pass to the wrapped action"
+    required: false
+runs:
+  using: "composite"
+  steps:
+    - name: Run wrapped action
+      id: wrapped-action
+      uses: ${{ inputs.action-name }}
+      with: ${{fromJson(inputs.action-args)}}
+      continue-on-error: true
+
+    - name: Invert outcome
+      run: |
+        if [[ "${{ steps.wrapped-action.outcome }}" == "success" ]]; then
+          echo "Wrapped action succeeded, inverting to failure."
+          exit 1
+        else
+          echo "Wrapped action failed, inverting to success."
+        fi
+      shell: bash
