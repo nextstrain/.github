@@ -63,6 +63,14 @@ on:
           - conda
         required: false
 
+      workflow-root:
+        description: >-
+          Path to the root of the workflow folder (e.g. one that contains a Snakefile) to run CI on.
+          Defaults to the root of the workflow repo.
+        type: string
+        default: ${{ github.workspace }}
+        required: false
+
       artifact-name:
         description: >-
           Name to use for build results artifact uploaded at the end of the
@@ -228,6 +236,7 @@ jobs:
           python-version: "3.7"
 
       - name: Copy example data
+        working-directory: ${{ inputs.workflow-root }}
         run: |
           if [[ -d example_data ]]; then
             mkdir -p data/
@@ -237,14 +246,17 @@ jobs:
           fi
 
       - run: nextstrain build . ${{ inputs.build-args }}
+        working-directory: ${{ inputs.workflow-root }}
 
       - if: always()
         uses: actions/upload-artifact@v3
+        env:
+          workdir: ${{ inputs.workflow-root }}
         with:
           name: ${{ inputs.artifact-name }}-${{ matrix.runtime }}
           path: |
-            auspice/
-            results/
-            benchmarks/
-            logs/
-            .snakemake/log/
+            $workdir/auspice/
+            $workdir/results/
+            $workdir/benchmarks/
+            $workdir/logs/
+            $workdir/.snakemake/log/
