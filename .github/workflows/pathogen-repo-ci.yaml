@@ -63,6 +63,16 @@ on:
           - conda
         required: false
 
+      build-dir:
+        description: >-
+          The directory used for `nextstrain build`.
+          If provided, example data should be in an `example_data` directory
+          relative to this directory.
+          Defaults to the root of the repository.
+        type: string
+        default: "."
+        required: false
+
       artifact-name:
         description: >-
           Name to use for build results artifact uploaded at the end of the
@@ -94,12 +104,20 @@ jobs:
       - id: inputs
         env:
           runtimes: ${{ inputs.runtimes }}
+          build_dir: ${{ inputs.build-dir }}
         shell: bash
         run: |
           runtimes="$(yq --output-format=json --indent=0 . <<<"$runtimes")"
           echo runtimes="$runtimes" | tee -a "$GITHUB_OUTPUT"
+
+          # Remove potential trailing slash and set default to current directory
+          build_dir="${build_dir%/}"
+          build_dir="${build_dir:-'.'}"
+          echo build_dir="$build_dir" | tee -a "$GITHUB_OUTPUT"
+
     outputs:
       runtimes: ${{ steps.inputs.outputs.runtimes }}
+      build_dir: ${{ steps.inputs.outputs.build_dir }}
 
   build:
     needs: configuration
@@ -228,6 +246,7 @@ jobs:
           python-version: "3.7"
 
       - name: Copy example data
+        working-directory: ${{ needs.configuration.outputs.build_dir }}
         run: |
           if [[ -d example_data ]]; then
             mkdir -p data/
@@ -237,14 +256,15 @@ jobs:
           fi
 
       - run: nextstrain build . ${{ inputs.build-args }}
+        working-directory: ${{ needs.configuration.outputs.build_dir }}
 
       - if: always()
         uses: actions/upload-artifact@v3
         with:
           name: ${{ inputs.artifact-name }}-${{ matrix.runtime }}
           path: |
-            auspice/
-            results/
-            benchmarks/
-            logs/
-            .snakemake/log/
+            ${{ needs.configuration.outputs.build_dir }}/auspice/
+            ${{ needs.configuration.outputs.build_dir }}/results/
+            ${{ needs.configuration.outputs.build_dir }}/benchmarks/
+            ${{ needs.configuration.outputs.build_dir }}/logs/
+            ${{ needs.configuration.outputs.build_dir }}/.snakemake/log/

@@ -26,6 +26,13 @@ jobs:
     with:
       repo: nextstrain/zika-tutorial
 
+  test-pathogen-repo-ci-with-build-dir:
+    uses: ./.github/workflows/pathogen-repo-ci.yaml
+    with:
+      repo: nextstrain/monkeypox
+      build-dir: phylogenetic
+      artifact-name: mpox-phylogenetic
+
   test-pathogen-repo-ci-failure:
     uses: ./.github/workflows/pathogen-repo-ci.yaml
     with:
