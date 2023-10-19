@@ -6,20 +6,53 @@ name: CI
 on:
   workflow_call:
     inputs:
-      build-args:
-        description: >-
-          Additional command-line arguments to pass to `nextstrain build` after
-          the build directory (e.g. to Snakemake).
-        type: string
-        default: ""
-        required: false
-
       repo:
         description: >-
           Repository name with owner (e.g. nextstrain/zika).  Defaults to the
           repository of the caller workflow.
         type: string
         default: ${{ github.repository }}
+        required: false
+
+      runtimes:
+        description: >-
+          List of Nextstrain runtimes under which to run the build, as a string
+          containing YAML.  This is easily produced, for example, by pretending
+          you're writing normal nested YAML within a literal multi-line block
+          scalar (introduced by "|"):
+
+            with:
+              runtimes: |
+                - docker
+                - conda
+
+          Defaults to "docker" and "conda".  One job per runtime will be run.
+        type: string
+        default: |
+          - docker
+          - conda
+        required: false
+
+      run:
+        description: >-
+          The full `nextstrain build` command to run for the build.
+          Defaults to `nextstrain build .`
+
+          Use the runtime input to select the runtime for the build instead of
+          the runtime selection options to ensure that the runtime is properly
+          set up within the GitHub Action job.
+
+          The pathogen repo is cloned to the top level of the working directory
+          of the GitHub Action, so use `.` to point to the pathogen repo directory.
+
+          If your build runs longer than the 6 hour limit for GitHub Action jobs,
+          consider using the `--detach` flag for the aws-batch runtime.
+
+          All environment variables provided via the env input and all secrets
+          provided via `secrets: inherit` can be passed to the build runtime
+          via the `--env` option.
+        type: string
+        default: nextstrain build .
         required: false
 
       env:
@@ -44,25 +77,6 @@ on:
         default: ""
         required: false
 
-      runtimes:
-        description: >-
-          List of Nextstrain runtimes under which to run the build, as a string
-          containing YAML.  This is easily produced, for example, by pretending
-          you're writing normal nested YAML within a literal multi-line block
-          scalar (introduced by "|"):
-
-            with:
-              runtimes: |
-                - docker
-                - conda
-
-          Defaults to "docker" and "conda".  One job per runtime will be run.
-        type: string
-        default: |
-          - docker
-          - conda
-        required: false
-
       artifact-name:
         description: >-
           Name to use for build results artifact uploaded at the end of the
@@ -76,16 +90,47 @@ on:
         default: outputs
         required: false
 
+      artifact-paths:
+        description: >-
+          List of paths to include in the build output artifact uploaded
+          at the end of the workflow, as a string following the format of the
+          `paths` input of the `actions/upload-artifact` action.
+          For example:
+
+            with:
+              artifact-paths: |
+                results/
+                auspice/
+                logs/
+
+          The default paths included in the artifact are:
+
+            build.log
+            auspice/
+            results/
+            benchmarks/
+            logs/
+            .snakemake/log/
+
+          The "build.log" contains log messages from the `nextstrain build` command.
+          The other paths are common output paths for Nextstrain builds.
+          If a path does not exist in your build, then the action will still
+          succeed and will print out a warning for the non-existent file(s).
+          Use an exclude pattern for any of the default paths that you would like to
+          exclude from the artifact (e.g. !build.log).
+
+          This is not supported for builds on AWS Batch because the workflow
+          detaches from the build. Please use the `nextstrain build` command
+          locally to reattach to AWS Batch builds to download outputs.
+        type: string
+        required: false
+
       continue-on-error:
         description: >-
           Pass thru for <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontinue-on-error>.
         type: boolean
         default: false
         required: false
-
-permissions:
-  contents: read
-  packages: read
 
 jobs:
   configuration:
@@ -107,144 +152,25 @@ jobs:
       fail-fast: false
       matrix:
         runtime: ${{ fromJSON(needs.configuration.outputs.runtimes) }}
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
     name: build (${{ matrix.runtime }})
-    runs-on: ubuntu-latest
-    continue-on-error: ${{ inputs.continue-on-error }}
-    steps:
-      # Log in, if possible, to docker.io (Docker Hub), since authenticated
-      # requests get higher rate limits (e.g. for image pulls).  Our org-level
-      # secret DOCKER_TOKEN_PUBLIC_READ_ONLY is available to all our public
-      # repos on GitHub but only available here to this reusable workflow when
-      # called with "secrets: inherit".  On Docker Hub, the token is granted
-      # "public read-only" access.
-      #
-      # The secrets context is not allowed in "if:" conditions, so we must
-      # launder it thru env.
-      - if: env.token-available == 'true'
-        env:
-          token-available: ${{ secrets.DOCKER_TOKEN_PUBLIC_READ_ONLY != '' }}
-        name: Log in to docker.io
-        uses: docker/login-action@v2
-        with:
-          registry: docker.io
-          username: nextstrainbot
-          password: ${{ secrets.DOCKER_TOKEN_PUBLIC_READ_ONLY }}
-        continue-on-error: true
-
-      # Log in, if possible, to ghcr.io which we use for staging images in
-      # nextstrain/docker-base.  The automatic GITHUB_TOKEN is restricted to
-      # read-only access by the "permissions:" block above.
-      - name: Log in to ghcr.io
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-        continue-on-error: true
-
-      # Transforms the inputs.env *string* containing YAML like this:
-      #
-      #   FOO: bar
-      #   I_CANT_BELIEVE: "it's not YAML"
-      #   would_you_believe: |
-      #     it's
-      #     not
-      #     yaml
-      #
-      # first into the equivalent JSON (with yq) and then into text (with jq)
-      # like this:
-      #
-      #   FOO=<<__EOF__
-      #   bar
-      #   __EOF__
-      #   I_CANT_BELIEVE<<__EOF__
-      #   it's not YAML
-      #   __EOF__
-      #   would_you_believe<<__EOF__
-      #   it's
-      #   not
-      #   yaml
-      #   __EOF__
-      #
-      # which is suitable for appending to the $GITHUB_ENV file in order to set
-      # the environment variables for subsequent steps.
-      #
-      # See the GitHub docs for more info on this heredoc-like syntax¹, which I
-      # use here to avoid quoting issues in arbitrary env var values.
-      #
-      # By doing this slightly-convoluted conversion here, callers can use the
-      # familiar env: block syntax almost without change and avoid paying much
-      # in accidental complexity.  We box it up here and let callers focus on
-      # their essential complexity.
-      #   -trs, 23 May 2022
-      #
-      # ¹ https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
-      #
-      - if: inputs.env
-        name: Set environment variables
-        env:
-          env: ${{ inputs.env }}
-        run: >
-          # shellcheck disable=SC2154
-
-          echo "$env"
-          | yq --output-format json .
-          | jq --raw-output '
-              to_entries
-            | map("\(.key)<<__EOF__\n\(.value)\n__EOF__")
-            | join("\n")
-          '
-          | tee -a "$GITHUB_ENV"
-
-      - uses: actions/checkout@v3
-        with:
-          repository: ${{ inputs.repo }}
-
-      # XXX TODO: It would be better for this to call setup-nextstrain-cli
-      # using the same ref that this workflow was called with (e.g. if this
-      # workflow was invoked by the caller workflow with @foo than we invoke
-      # the action with @foo too), but it's not currently possible to figure
-      # out that ref.  See discussion around this (including results of some
-      # investigation I did):
-      #
-      #   - https://github.community/t/reusable-workflows-get-the-ref-inside-the-called-workflow/224109
-      #   - https://github.community/t/ref-head-in-reusable-workflows/203690/92
-      #
-      # Once we can figure out that ref, then we can actions/checkout our
-      # nextstrain/.github repo at that ref as a sidecar path somewhere and
-      # then invoke the setup-nextstrain-cli action using a local file path
-      # instead of a remote owner/repo path.  This separate checkout will be
-      # necessary since the "uses:" key can't be interpolated (${{…}}) with
-      # context vars.
-      #
-      # For now, update the hardcoded ref (e.g. @90af34…) below when you make
-      # future changes to setup-nextstrain-cli.
-      #
-      #   -trs, 28 April 2022
-      - uses: nextstrain/.github/actions/setup-nextstrain-cli@0e74eb59bbdecc80de08d04b26b7b0242890b582
-        with:
-          runtime: ${{ matrix.runtime }}
-          # Consider parameterizing the Python version. -trs, 1 April 2022
-          python-version: "3.7"
-
-      - name: Copy example data
-        run: |
-          if [[ -d example_data ]]; then
-            mkdir -p data/
-            cp -r -v example_data/* data/
-          else
-            echo No example data to copy.
-          fi
-
-      - run: nextstrain build . ${{ inputs.build-args }}
-
-      - if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ inputs.artifact-name }}-${{ matrix.runtime }}
-          path: |
-            auspice/
-            results/
-            benchmarks/
-            logs/
-            .snakemake/log/
+    # The "uses:" key can't be interpolated (${{…}}) so the ref must be hard-coded
+    # We cannot use the workflow-context action here because this calling a
+    # reusable workflow as a full job rather than a step within the job.
+    #
+    # Update the hardcoded ref below when you make future changes to the pathogen-repo-build.
+    #   -Jover, 19 Oct 2023
+    uses: nextstrain/.github/.github/workflows/pathogen-repo-build.yaml@f98902bae5286e22e834a634417120626bc676f9
+    secrets: inherit
+    with:
+      repo: ${{ inputs.repo }}
+      runtime: ${{ matrix.runtime }}
+      run: ${{ inputs.run }}
+      env: ${{ inputs.env }}
+      artifact-name: ${{ inputs.artifact-name }}-${{ matrix.runtime }}
+      artifact-paths: ${{ inputs.artifact-paths }}
+      continue-on-error: ${{ inputs.continue-on-error }}
+      copy-example-data: true
