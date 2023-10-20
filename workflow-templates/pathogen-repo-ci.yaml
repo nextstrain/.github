@@ -9,4 +9,9 @@ on:
 
 jobs:
   ci:
+    # These permissions are required for this workflow.
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
     uses: nextstrain/.github/.github/workflows/pathogen-repo-ci.yaml@master
