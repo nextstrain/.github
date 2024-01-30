@@ -17,20 +17,52 @@ jobs:
 
   test-pathogen-repo-ci:
     uses: ./.github/workflows/pathogen-repo-ci.yaml
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
     with:
       repo: nextstrain/zika
     secrets: inherit
 
   test-pathogen-repo-ci-no-example-data:
     uses: ./.github/workflows/pathogen-repo-ci.yaml
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
     with:
       repo: nextstrain/zika-tutorial
 
+  test-pathogen-repo-ci-with-build-dir:
+    uses: ./.github/workflows/pathogen-repo-ci.yaml
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
+    with:
+      repo: nextstrain/monkeypox
+      run: |
+        mkdir -p phylogenetic/data;
+        cp -r -v phylogenetic/example_data/* phylogenetic/data/;
+        nextstrain build phylogenetic
+      artifact-name: mpox-phylogenetic
+      artifact-paths: |
+        phylogenetic/auspice/
+        phylogenetic/results/
+        phylogenetic/benchmarks/
+        phylogenetic/logs/
+        phylogenetic/.snakemake/log/
+
   test-pathogen-repo-ci-failure:
     uses: ./.github/workflows/pathogen-repo-ci.yaml
+    permissions:
+      contents: read
+      packages: read
+      id-token: write
     with:
       repo: nextstrain/zika-tutorial
-      build-args: __BOGUS_BUILD_TARGET__
+      run: nextstrain build . __BOGUS_BUILD_TARGET__
       continue-on-error: true
 
   test-docs-ci-conda:
@@ -49,6 +81,8 @@ jobs:
 
   test-pathogen-repo-build:
     permissions:
+      contents: read
+      packages: read
       id-token: write
     strategy:
       matrix:
