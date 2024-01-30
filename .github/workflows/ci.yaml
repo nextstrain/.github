@@ -18,7 +18,11 @@ jobs:
   test-pathogen-repo-ci:
     uses: ./.github/workflows/pathogen-repo-ci.yaml
     with:
-      repo: nextstrain/zika
+      # XXX TODO: Revert back to nextstrain/zika (for consistency with
+      # elsewhere) once pathogen-repo-ci has support for running workflows in
+      # subdirs (i.e. for our new repo layout).
+      #   -trs, 30 Jan 2024
+      repo: nextstrain/ebola
     secrets: inherit
 
   test-pathogen-repo-ci-no-example-data:
@@ -38,7 +42,7 @@ jobs:
     with:
       repo: nextstrain/docs.nextstrain.org
       docs-directory: .
-      environment-file: environment.yml
+      environment-file: conda.yml
 
   test-docs-ci-pip:
     uses: ./.github/workflows/docs-ci.yaml

@@ -112,3 +112,8 @@ Executable scripts that are used in our workflows.
 Text templates for messages and summaries in our workflows.
 
 - [attach-aws-batch](text-templates/attach-aws-batch.md)
+
+
+## Configuration for this repo itself
+
+- [Dependabot configuration](.github/dependabot.yml)
