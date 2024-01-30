@@ -11,7 +11,7 @@ jobs:
   test-setup-nextstrain-cli:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./actions/setup-nextstrain-cli
       - run: nextstrain version --verbose
 
@@ -66,6 +66,6 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: ./devel/check-readme
       - uses: ./actions/shellcheck
