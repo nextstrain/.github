@@ -124,7 +124,7 @@ jobs:
         env:
           token-available: ${{ secrets.DOCKER_TOKEN_PUBLIC_READ_ONLY != '' }}
         name: Log in to docker.io
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: docker.io
           username: nextstrainbot
@@ -135,7 +135,7 @@ jobs:
       # nextstrain/docker-base.  The automatic GITHUB_TOKEN is restricted to
       # read-only access by the "permissions:" block above.
       - name: Log in to ghcr.io
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
