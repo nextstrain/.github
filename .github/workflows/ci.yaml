@@ -38,7 +38,7 @@ jobs:
     with:
       repo: nextstrain/docs.nextstrain.org
       docs-directory: .
-      environment-file: environment.yml
+      environment-file: conda.yml
 
   test-docs-ci-pip:
     uses: ./.github/workflows/docs-ci.yaml
