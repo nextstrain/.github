@@ -59,7 +59,7 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        runtime: [docker, conda]
+        runtime: [docker, conda, aws-batch]
     uses: ./.github/workflows/pathogen-repo-build.yaml
     with:
       repo: nextstrain/zika-tutorial
