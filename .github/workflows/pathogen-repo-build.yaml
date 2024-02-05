@@ -29,13 +29,20 @@ on:
           Currently only supports docker, conda, and aws-batch.
           Defaults to "docker".
 
-          The aws-batch runtime requires the secrets:
+          The aws-batch runtime requires AWS credentials.  These may come
+          directly from secrets or indirectly from assuming a role via GitHub
+          Actions' OIDC provider.
+
+          The following secrets are used if present:
 
           - AWS_ACCESS_KEY_ID
           - AWS_SECRET_ACCESS_KEY
 
           They must be defined in the repo's Actions secrets and passed to this
           workflow with `secrets: inherit`.
+
+          If no secrets are present, the GitHubActionsRoleNextstrainBatchJobs
+          role is assumed (in both senses of the verb).
         type: string
         default: docker
         required: false
@@ -57,7 +64,13 @@ on:
 
           All environment variables provided via the env input and all secrets
           provided via `secrets: inherit` can be passed to the build runtime
-          via the `--env` option.
+          via the `--env` option.  If AWS credentials were acquired by the
+          GitHub Action job via role assumption, the following environment
+          variables are also available to be passed:
+
+            - AWS_ACCESS_KEY_ID
+            - AWS_SECRET_ACCESS_KEY
+            - AWS_SESSION_TOKEN
         type: string
         default: nextstrain build .
         required: false
@@ -136,11 +149,12 @@ on:
 env:
   NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
 
+permissions:
+  id-token: write
+
 jobs:
   workflow-context:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     steps:
       - id: workflow-context
         uses: nextstrain/.github/actions/workflow-context@master
@@ -167,16 +181,6 @@ jobs:
           ref: ${{ needs.workflow-context.outputs.sha }}
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
 
-      - name: Setup runtime ${{ inputs.runtime }}
-        uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
-        with:
-          cli-version: ">=7.1.0"
-          runtime: ${{ inputs.runtime }}
-        # Required to set up aws-batch as default runtime
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
       - if: inputs.env
         name: Set environment variables
         env:
@@ -198,6 +202,21 @@ jobs:
           | jq 'del(.github_token)'
           | "$NEXTSTRAIN_GITHUB_DIR"/bin/json-to-envvars
           | tee -a "$GITHUB_ENV"
+
+      - if: inputs.runtime == 'aws-batch'
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: us-east-1
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: ${{ secrets.AWS_ACCESS_KEY_ID == '' && 'arn:aws:iam::827581582529:role/GitHubActionsRoleNextstrainBatchJobs' || '' }}
+          credential-lifetime: 43200 # seconds, or 12 hours
+
+      - name: Setup runtime ${{ inputs.runtime }}
+        uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
+        with:
+          cli-version: ">=7.1.0"
+          runtime: ${{ inputs.runtime }}
 
       - name: Run build via ${{ inputs.runtime }}
         env:
