@@ -23,17 +23,20 @@ jobs:
       # subdirs (i.e. for our new repo layout).
       #   -trs, 30 Jan 2024
       repo: nextstrain/ebola
+      artifact-name: outputs-test-pathogen-repo-ci
     secrets: inherit
 
   test-pathogen-repo-ci-no-example-data:
     uses: ./.github/workflows/pathogen-repo-ci.yaml
     with:
       repo: nextstrain/zika-tutorial
+      artifact-name: outputs-test-pathogen-repo-ci-no-example-data
 
   test-pathogen-repo-ci-failure:
     uses: ./.github/workflows/pathogen-repo-ci.yaml
     with:
       repo: nextstrain/zika-tutorial
+      artifact-name: outputs-test-pathogen-repo-ci-failure
       build-args: __BOGUS_BUILD_TARGET__
       continue-on-error: true
 
