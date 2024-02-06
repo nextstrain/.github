@@ -221,7 +221,7 @@ jobs:
       # future changes to setup-nextstrain-cli.
       #
       #   -trs, 28 April 2022
-      - uses: nextstrain/.github/actions/setup-nextstrain-cli@0e74eb59bbdecc80de08d04b26b7b0242890b582
+      - uses: nextstrain/.github/actions/setup-nextstrain-cli@585ce0dde7fda2a82f7ef9054fbb95d2eb21a610
         with:
           runtime: ${{ matrix.runtime }}
           # Consider parameterizing the Python version. -trs, 1 April 2022
