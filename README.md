@@ -54,7 +54,8 @@ Invoked by other repos.
   ([workflow](.github/workflows/sync-rtd-redirects.yaml))
 
 - Pathogen repo build
-  ([workflow](.github/workflows/pathogen-repo-build.yaml))
+  ([workflow source](.github/workflows/pathogen-repo-build.yaml.in),
+   [workflow compiled](.github/workflows/pathogen-repo-build.yaml))
 
 See also GitHub's [documentation on reusing workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
 
@@ -114,6 +115,21 @@ Text templates for messages and summaries in our workflows.
 - [attach-aws-batch](text-templates/attach-aws-batch.md)
 
 
+## Development tools for this repo itself
+
+- Linting to ensure the README stays complete
+  ([devel/check-readme](devel/check-readme))
+
+- Pre-processing of YAML to satisfy the requirements of GitHub Actions
+  ([Makefile](Makefile), [devel/regenerate-workflow](devel/regenerate-workflow), [devel/explode-yaml](devel/explode-yaml))
+
+- Git pre-commit hook for keeping generated files in sync every commit
+  ([devel/pre-commit](devel/pre-commit))
+
+
 ## Configuration for this repo itself
+
+- Per-file [Git attributes](https://git-scm.com/docs/gitattributes)
+  ([.gitattributes](.gitattributes))
 
 - [Dependabot configuration](.github/dependabot.yml)
