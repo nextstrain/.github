@@ -232,7 +232,7 @@ jobs:
         name: Setup runtime ${{ inputs.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
-          cli-version: ">=7.4.0"
+          cli-version: ">=8.3.0"
           runtime: ${{ inputs.runtime }}
 
       - name: Run build via ${{ inputs.runtime }}
