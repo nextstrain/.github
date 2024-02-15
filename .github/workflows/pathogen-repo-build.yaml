@@ -265,7 +265,7 @@ jobs:
       - name: Setup runtime ${{ inputs.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
-          cli-version: ">=7.4.0"
+          cli-version: ">=8.2.0"
           runtime: ${{ inputs.runtime }}
       - name: Run build via ${{ inputs.runtime }}
         env:
@@ -332,7 +332,7 @@ jobs:
       - name: Setup runtime ${{ inputs.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
-          cli-version: ">=7.4.0"
+          cli-version: ">=8.2.0"
           runtime: ${{ inputs.runtime }}
       - id: attach
         name: Attach to AWS Batch job
@@ -389,7 +389,7 @@ jobs:
       - name: Setup runtime ${{ inputs.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
-          cli-version: ">=7.4.0"
+          cli-version: ">=8.2.0"
           runtime: ${{ inputs.runtime }}
       - id: attach
         name: Attach to AWS Batch job
@@ -447,7 +447,7 @@ jobs:
       - name: Setup runtime ${{ inputs.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
-          cli-version: ">=7.4.0"
+          cli-version: ">=8.2.0"
           runtime: ${{ inputs.runtime }}
       - id: attach
         name: Attach to AWS Batch job
@@ -505,7 +505,7 @@ jobs:
       - name: Setup runtime ${{ inputs.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
-          cli-version: ">=7.4.0"
+          cli-version: ">=8.2.0"
           runtime: ${{ inputs.runtime }}
       - id: attach
         name: Attach to AWS Batch job
@@ -586,7 +586,7 @@ jobs:
       - name: Setup runtime ${{ inputs.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
-          cli-version: ">=7.4.0"
+          cli-version: ">=8.2.0"
           runtime: ${{ inputs.runtime }}
       - id: cancel
         name: Cancel AWS Batch job
