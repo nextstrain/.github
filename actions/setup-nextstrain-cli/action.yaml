@@ -29,9 +29,12 @@ inputs:
   runtime:
     description: >-
       Nextstrain runtime to configure and set as the default, as a string
-      understood by `nextstrain setup`.  Defaults to "docker".
+      understood by `nextstrain setup`.  Defaults to "docker" on Linux and
+      "conda" on macOS (where, on GitHub Actions, Docker isn't supported).  On
+      Windows, no runtime is set up by default: GitHub Actions runners can't run
+      Linux containers via WSL2 and our Conda runtime doesn't support Windows.
     type: string
-    default: docker
+    default: ${{ runner.os == 'Linux' && 'docker' || runner.os == 'macOS' && 'conda' || '' }}
     required: false
 
   python-version:
@@ -60,7 +63,8 @@ runs:
     - run: nextstrain version
       shell: bash
 
-    - run: nextstrain setup --set-default "$runtime"
+    - if: inputs.runtime
+      run: nextstrain setup --set-default "$runtime"
       shell: bash
       env:
         runtime: ${{ inputs.runtime }}
