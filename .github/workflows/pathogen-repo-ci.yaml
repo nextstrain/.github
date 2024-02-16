@@ -220,12 +220,15 @@ jobs:
       # For now, update the hardcoded ref (e.g. @90af34…) below when you make
       # future changes to setup-nextstrain-cli.
       #
+      # [ Update 16 Feb 2024: We solved this for pathogen-repo-build.yaml, but
+      #   because it required a new permission on the GitHub tokens (id-token:
+      #   write) we decided not to update this workflow (yet?) to use the same
+      #   approach. -trs ]
+      #
       #   -trs, 28 April 2022
-      - uses: nextstrain/.github/actions/setup-nextstrain-cli@585ce0dde7fda2a82f7ef9054fbb95d2eb21a610
+      - uses: nextstrain/.github/actions/setup-nextstrain-cli@c1191de9d5e1a30e91d70b0fd1041d97ed1b2496
         with:
           runtime: ${{ matrix.runtime }}
-          # Consider parameterizing the Python version. -trs, 1 April 2022
-          python-version: "3.7"
 
       - name: Copy example data
         run: |
