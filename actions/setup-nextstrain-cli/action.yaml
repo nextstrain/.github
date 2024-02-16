@@ -30,11 +30,10 @@ inputs:
     description: >-
       Nextstrain runtime to configure and set as the default, as a string
       understood by `nextstrain setup`.  Defaults to "docker" on Linux and
-      "conda" on macOS (where, on GitHub Actions, Docker isn't supported).  On
-      Windows, no runtime is set up by default: GitHub Actions runners can't run
-      Linux containers via WSL2 and our Conda runtime doesn't support Windows.
+      Windows and "conda" on macOS (where, on GitHub Actions, Docker isn't
+      supported).
     type: string
-    default: ${{ runner.os == 'Linux' && 'docker' || runner.os == 'macOS' && 'conda' || '' }}
+    default: ${{ runner.os == 'macOS' && 'conda' || 'docker' }}
     required: false
 
   # XXX TODO: Remove this in coordination with existing callers.  Callers must
@@ -79,6 +78,10 @@ runs:
     - run: echo "$DESTINATION" | tee -a "$GITHUB_PATH"
       env:
         DESTINATION: ${{ runner.temp }}/nextstrain-cli
+      shell: bash
+
+    - if: inputs.runtime == 'docker'
+      run: echo "DOCKER_DEFAULT_PLATFORM=linux/amd64" | tee -a "$GITHUB_ENV"
       shell: bash
 
     - run: nextstrain version
