@@ -242,13 +242,15 @@ jobs:
 
           eval "$NEXTSTRAIN_BUILD_COMMAND" |& tee build.log
 
-      - if: ${{ inputs.runtime == 'aws-batch' }}
+      # Attempt to get the AWS Batch ID even if the run build command failed
+      # as long as the runtime is `aws-batch` and the `build.log` file exists
+      - if: ${{ always() && inputs.runtime == 'aws-batch' && hashFiles('build.log') != '' }}
         name: Get AWS Batch job id
         id: aws-batch
         run: |
           echo "AWS_BATCH_JOB_ID=$(sed -nE 's/.+AWS Batch Job ID\:.+ ([-a-f0-9]+)$/\1/p' < build.log)" >> "$GITHUB_ENV"
 
-      - if: env.AWS_BATCH_JOB_ID
+      - if: ${{ always() && env.AWS_BATCH_JOB_ID }}
         name: Generate AWS Batch summary
         run: |
           "$NEXTSTRAIN_GITHUB_DIR"/bin/interpolate-env < "$NEXTSTRAIN_GITHUB_DIR"/text-templates/attach-aws-batch.md \
