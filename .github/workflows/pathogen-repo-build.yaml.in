@@ -128,19 +128,20 @@ on:
 
           The default paths included in the artifact are:
 
-            build.log
+            .git/build.log
             auspice/
             results/
             benchmarks/
             logs/
             .snakemake/log/
 
-          The "build.log" contains log messages from the `nextstrain build` command.
+          The ".git/build.log" contains log messages from the
+          `nextstrain build` command.
           The other paths are common output paths for Nextstrain builds.
           If a path does not exist in your build, then the action will still
           succeed and will print out a warning for the non-existent file(s).
           Use an exclude pattern for any of the default paths that you would like to
-          exclude from the artifact (e.g. !build.log).
+          exclude from the artifact (e.g. !.git/build.log).
 
           This is not supported for builds on AWS Batch because the workflow
           detaches from the build. Please use the `nextstrain build` command
@@ -160,6 +161,7 @@ on:
 
 env:
   NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
+  NEXTSTRAIN_BUILD_LOG: .git/build.log
 
 permissions:
   id-token: write
@@ -240,15 +242,15 @@ jobs:
           # shellcheck disable=SC2154
           set -x
 
-          eval "$NEXTSTRAIN_BUILD_COMMAND" |& tee build.log
+          eval "$NEXTSTRAIN_BUILD_COMMAND" |& tee "$NEXTSTRAIN_BUILD_LOG"
 
       # Attempt to get the AWS Batch ID even if the run build command failed
-      # as long as the runtime is `aws-batch` and the `build.log` file exists
-      - if: ${{ always() && inputs.runtime == 'aws-batch' && hashFiles('build.log') != '' }}
+      # as long as the runtime is `aws-batch` and the `NEXTSTRAIN_BUILD_LOG` file exists
+      - if: ${{ always() && inputs.runtime == 'aws-batch' && hashFiles(env.NEXTSTRAIN_BUILD_LOG) != '' }}
         name: Get AWS Batch job id
         id: aws-batch
         run: |
-          echo "AWS_BATCH_JOB_ID=$(sed -nE 's/.+AWS Batch Job ID\:.+ ([-a-f0-9]+)$/\1/p' < build.log)" | tee -a "$GITHUB_ENV"
+          echo "AWS_BATCH_JOB_ID=$(sed -nE 's/.+AWS Batch Job ID\:.+ ([-a-f0-9]+)$/\1/p' < "$NEXTSTRAIN_BUILD_LOG")" | tee -a "$GITHUB_ENV"
 
       - if: ${{ always() && env.AWS_BATCH_JOB_ID }}
         name: Generate AWS Batch summary
@@ -262,7 +264,7 @@ jobs:
           if-no-files-found: warn
           name: ${{ inputs.artifact-name }}
           path: |
-            build.log
+            ${{ env.NEXTSTRAIN_BUILD_LOG }}
             auspice/
             results/
             benchmarks/
