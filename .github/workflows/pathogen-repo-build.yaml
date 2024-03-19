@@ -98,14 +98,14 @@ on:
           The default paths included in the artifact are:
 
 
-            .git/build.log
+            build.log
             auspice/
             results/
             benchmarks/
             logs/
             .snakemake/log/
 
-          The ".git/build.log" contains log messages from the `nextstrain build` command. The other paths are common output paths for Nextstrain builds. If a path does not exist in your build, then the action will still succeed and will print out a warning for the non-existent file(s). Use an exclude pattern for any of the default paths that you would like to exclude from the artifact (e.g. !.git/build.log).
+          The "build.log" contains log messages from the `nextstrain build` command. The other paths are common output paths for Nextstrain builds. If a path does not exist in your build, then the action will still succeed and will print out a warning for the non-existent file(s). Use an exclude pattern for any of the default paths that you would like to exclude from the artifact (e.g. !build.log).
 
           This is not supported for builds on AWS Batch because the workflow detaches from the build. Please use the `nextstrain build` command locally to reattach to AWS Batch builds to download outputs.
         type: string
@@ -189,14 +189,14 @@ on:
           The default paths included in the artifact are:
 
 
-            .git/build.log
+            build.log
             auspice/
             results/
             benchmarks/
             logs/
             .snakemake/log/
 
-          The ".git/build.log" contains log messages from the `nextstrain build` command. The other paths are common output paths for Nextstrain builds. If a path does not exist in your build, then the action will still succeed and will print out a warning for the non-existent file(s). Use an exclude pattern for any of the default paths that you would like to exclude from the artifact (e.g. !.git/build.log).
+          The "build.log" contains log messages from the `nextstrain build` command. The other paths are common output paths for Nextstrain builds. If a path does not exist in your build, then the action will still succeed and will print out a warning for the non-existent file(s). Use an exclude pattern for any of the default paths that you would like to exclude from the artifact (e.g. !build.log).
 
           This is not supported for builds on AWS Batch because the workflow detaches from the build. Please use the `nextstrain build` command locally to reattach to AWS Batch builds to download outputs.
         type: string
@@ -209,7 +209,7 @@ on:
         required: true
 env:
   NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
-  NEXTSTRAIN_BUILD_LOG: .git/build.log
+  NEXTSTRAIN_BUILD_LOG: build.log
 permissions:
   id-token: write
 jobs:
@@ -275,7 +275,13 @@ jobs:
           # shellcheck disable=SC2154
           set -x
 
-          eval "$NEXTSTRAIN_BUILD_COMMAND" |& tee "$NEXTSTRAIN_BUILD_LOG"
+          # tee build output to .git/ to avoid
+          # https://github.com/nextstrain/.github/issues/77#issuecomment-1998652064
+          # After build is complete, move .git/build.log to the working directory
+          # so this is kept as an implementation detail
+          eval "$NEXTSTRAIN_BUILD_COMMAND" |& tee .git/"$NEXTSTRAIN_BUILD_LOG"
+
+          mv .git/"$NEXTSTRAIN_BUILD_LOG" "$NEXTSTRAIN_BUILD_LOG"
       # Attempt to get the AWS Batch ID even if the run build command failed
       # as long as the runtime is `aws-batch` and the `NEXTSTRAIN_BUILD_LOG` file exists
       - if: ${{ always() && inputs.runtime == 'aws-batch' && hashFiles(env.NEXTSTRAIN_BUILD_LOG) != '' }}
