@@ -209,6 +209,7 @@ on:
         required: true
 env:
   NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
+  NEXTSTRAIN_BUILD_LOG: build.log
 permissions:
   id-token: write
 jobs:
@@ -274,14 +275,20 @@ jobs:
           # shellcheck disable=SC2154
           set -x
 
-          eval "$NEXTSTRAIN_BUILD_COMMAND" |& tee build.log
+          # tee build output to .git/ to avoid
+          # https://github.com/nextstrain/.github/issues/77#issuecomment-1998652064
+          # After build is complete, move .git/build.log to the working directory
+          # so this is kept as an implementation detail
+          eval "$NEXTSTRAIN_BUILD_COMMAND" |& tee .git/"$NEXTSTRAIN_BUILD_LOG"
+
+          mv .git/"$NEXTSTRAIN_BUILD_LOG" "$NEXTSTRAIN_BUILD_LOG"
       # Attempt to get the AWS Batch ID even if the run build command failed
-      # as long as the runtime is `aws-batch` and the `build.log` file exists
-      - if: ${{ always() && inputs.runtime == 'aws-batch' && hashFiles('build.log') != '' }}
+      # as long as the runtime is `aws-batch` and the `NEXTSTRAIN_BUILD_LOG` file exists
+      - if: ${{ always() && inputs.runtime == 'aws-batch' && hashFiles(env.NEXTSTRAIN_BUILD_LOG) != '' }}
         name: Get AWS Batch job id
         id: aws-batch
         run: |
-          echo "AWS_BATCH_JOB_ID=$(sed -nE 's/.+AWS Batch Job ID\:.+ ([-a-f0-9]+)$/\1/p' < build.log)" | tee -a "$GITHUB_ENV"
+          echo "AWS_BATCH_JOB_ID=$(sed -nE 's/.+AWS Batch Job ID\:.+ ([-a-f0-9]+)$/\1/p' < "$NEXTSTRAIN_BUILD_LOG")" | tee -a "$GITHUB_ENV"
       - if: ${{ always() && env.AWS_BATCH_JOB_ID }}
         name: Generate AWS Batch summary
         run: |
@@ -293,7 +300,7 @@ jobs:
           if-no-files-found: warn
           name: ${{ inputs.artifact-name }}
           path: |
-            build.log
+            ${{ env.NEXTSTRAIN_BUILD_LOG }}
             auspice/
             results/
             benchmarks/
