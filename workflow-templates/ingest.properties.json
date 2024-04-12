@@ -1,0 +1,4 @@
+{
+    "name": "Ingest",
+    "description": "Starter workflow for setting up Nextstrain pathogen ingest workflows. Replace <pathogen> with your pathogen repo name."
+}

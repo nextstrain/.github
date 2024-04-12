@@ -1,0 +1,4 @@
+{
+    "name": "Phylogenetic",
+    "description": "Starter workflow for setting up Nextstrain pathogen phylogenetic workflows. Replace <pathogen> with your pathogen repo name."
+}

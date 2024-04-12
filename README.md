@@ -91,6 +91,18 @@ Used to setup other repos.
   ([template](workflow-templates/pathogen-repo-build.yaml),
   [properties](workflow-templates/pathogen-repo-build.properties.json))
 
+- Ingest
+  ([template](workflow-templates/ingest.yaml),
+  [properties](workflow-templates/ingest.properties.json))
+
+- Phylogenetic
+  ([template](workflow-templates/phylogenetic.yaml),
+  [properties](workflow-templates/phylogenetic.properties.json))
+
+- Ingest to phylogenetic
+  ([template](workflow-templates/ingest-to-phylogenetic.yaml),
+  [properties](workflow-templates/ingest-to-phylogenetic.properties.json))
+
 See also GitHub's [documentation on starter workflows](https://docs.github.com/en/actions/using-workflows/creating-starter-workflows-for-your-organization).
 
 

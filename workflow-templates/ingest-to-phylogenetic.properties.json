@@ -1,0 +1,8 @@
+{
+    "name": "Ingest to phylogenetic",
+    "description": "Starter workflow for setting up automated Nextstrain pathogen ingest and phylogenetic workflows. Replace <pathogen> with your pathogen repo name.",
+    "filePatterns": [
+        ".github/workflows/ingest.yaml",
+        ".github/workflows/phylogenetic.yaml"
+    ]
+}
