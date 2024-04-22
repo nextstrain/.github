@@ -59,7 +59,7 @@ jobs:
         with:
           repository: ${{ inputs.repo }}
 
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: ${{ inputs.environment-file }}
 
