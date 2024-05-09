@@ -218,7 +218,7 @@ jobs:
           | "$NEXTSTRAIN_GITHUB_DIR"/bin/json-to-envvars
           | tee -a "$GITHUB_ENV"
 
-      - &setup-aws-credentials
+      - &setup-aws-batch-credentials
         if: inputs.runtime == 'aws-batch'
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -294,7 +294,7 @@ jobs:
     steps:
       # Uses needs.workflow-context.outputs
       - *checkout-workflow-support
-      - *setup-aws-credentials
+      - *setup-aws-batch-credentials
       - *setup-runtime
 
       - id: attach
@@ -379,7 +379,7 @@ jobs:
     steps:
       # Uses needs.workflow-context.outputs
       - *checkout-workflow-support
-      - *setup-aws-credentials
+      - *setup-aws-batch-credentials
       - *setup-runtime
 
       - id: cancel
