@@ -16,7 +16,7 @@ Nextstrain comprises [multiple interconnected software components](https://githu
 
 ### Quick start
 
-1. Find an open issue that matches your skills and interests [on a Nextstrain project board](https://github.com/orgs/nextstrain/projects) or [among all issues for Nextstrain components listed above](https://github.com/search?q=org%3Anextstrain&state=open&type=Issues).
+1. Find an open issue that matches your skills and interests [among all issues for Nextstrain components listed above](https://github.com/search?q=org%3Anextstrain&state=open&type=Issues).
 
 2. **Comment on the issue**, to let us know you’d like us to assign that issue to you. Include a brief description of how you plan to address the issue and, optionally, any prototypes or mockups of your planned implementation. We will respond to your comment to let you know you’ve been assigned or to clarify aspects of your proposed solution.
 
@@ -50,7 +50,7 @@ If you don't find an existing feature, create a new issue in the appropriate rep
 
 ### Contribute documentation
 
-Did you find a typo or a mistake in our existing documentation? Did you work through an example in a tutorial only to find it was missing a step? Are you trying to accomplish specific something with Nextstrain but can't find any description of that analysis? Did you find [an open issue on our project boards](https://github.com/orgs/nextstrain/projects) for improving documentation and you want to help out?
+Did you find a typo or a mistake in our existing documentation? Did you work through an example in a tutorial only to find it was missing a step? Are you trying to accomplish specific something with Nextstrain but can't find any description of that analysis? Did you find [an open issue in one of repositories](https://github.com/search?q=org%3Anextstrain&state=open&type=Issues) for improving documentation and you want to help out?
 
 These are all great opportunities for you to help improve our documentation. Find the Nextstrain component you'd like to contribute and review the contributing guide for that component's documentation using the links below.
 
