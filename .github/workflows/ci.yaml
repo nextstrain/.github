@@ -40,14 +40,6 @@ jobs:
       repo: nextstrain/zika-tutorial
       artifact-name: outputs-test-pathogen-repo-ci-no-example-data
 
-  test-pathogen-repo-ci-failure:
-    uses: ./.github/workflows/pathogen-repo-ci.yaml
-    with:
-      repo: nextstrain/zika-tutorial
-      artifact-name: outputs-test-pathogen-repo-ci-failure
-      build-args: __BOGUS_BUILD_TARGET__
-      continue-on-error: true
-
   test-docs-ci-conda:
     uses: ./.github/workflows/docs-ci.yaml
     with:
