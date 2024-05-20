@@ -246,6 +246,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           role-to-assume: ${{ secrets.AWS_ACCESS_KEY_ID == '' && steps.role.outputs.arn || '' }}
           role-duration-seconds: 43200 # seconds, or 12 hours
+      - run: aws sts get-caller-identity
 
       - name: Save runtime AWS credentials to ${{ env.NEXTSTRAIN_RUNTIME_ENVDIR }}
         run: |
@@ -268,6 +269,8 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           role-to-assume: ${{ secrets.AWS_ACCESS_KEY_ID == '' && 'arn:aws:iam::827581582529:role/GitHubActionsRoleNextstrainBatchJobs' || '' }}
           role-duration-seconds: 43200 # seconds, or 12 hours
+      - if: inputs.runtime == 'aws-batch'
+        run: aws sts get-caller-identity
 
       - &setup-runtime
         name: Setup runtime ${{ inputs.runtime }}
