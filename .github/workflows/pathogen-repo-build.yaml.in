@@ -239,14 +239,17 @@ jobs:
         run: |
           echo "arn=arn:aws:iam::827581582529:role/GitHubActionsRoleNextstrainRepo@${REPO_FULL_NAME#*/}" | tee -a "$GITHUB_OUTPUT"
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - name: Configure credentials for runtime access to AWS
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           role-to-assume: ${{ secrets.AWS_ACCESS_KEY_ID == '' && steps.role.outputs.arn || '' }}
           role-duration-seconds: 43200 # seconds, or 12 hours
-      - run: aws sts get-caller-identity
+
+      - name: Report identity of runtime access to AWS
+        run: aws sts get-caller-identity
 
       - name: Save runtime AWS credentials to ${{ env.NEXTSTRAIN_RUNTIME_ENVDIR }}
         run: |
@@ -262,6 +265,7 @@ jobs:
     # outdenting comments to not repeat it with expanded YAML
       - &setup-aws-batch-credentials
         if: inputs.runtime == 'aws-batch'
+        name: Configure credentials for GitHub Actions job access to AWS Batch
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-east-1
@@ -269,7 +273,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           role-to-assume: ${{ secrets.AWS_ACCESS_KEY_ID == '' && 'arn:aws:iam::827581582529:role/GitHubActionsRoleNextstrainBatchJobs' || '' }}
           role-duration-seconds: 43200 # seconds, or 12 hours
+
       - if: inputs.runtime == 'aws-batch'
+        name: Report identity of GitHub Actions job access to AWS Batch
         run: aws sts get-caller-identity
 
       - &setup-runtime
