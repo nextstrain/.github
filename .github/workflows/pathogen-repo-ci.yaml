@@ -6,6 +6,14 @@ name: CI
 on:
   workflow_call:
     inputs:
+      build-target:
+        description: >-
+          The build directory to provide as the first argument to
+          `nextstrain build`.
+        type: string
+        default: "."
+        required: false
+
       build-args:
         description: >-
           Additional command-line arguments to pass to `nextstrain build` after
@@ -72,6 +80,26 @@ on:
           If you're invoking this workflow multiple times from the same calling
           workflow, you should set this.  Otherwise, the default of "outputs"
           is probably fine.
+        type: string
+        default: outputs
+        required: false
+
+      download-previous-artifact:
+        description: >-
+          Boolean indicating whether to try to download a build artifact from
+          a previous stage.
+        type: boolean
+        default: false
+        required: false
+
+      previous-artifact-name:
+        description: >-
+          Name to use for previous artifact file, when downloading the artifact
+          from a previous stage.
+
+          If you're downloading the previous stage's artifact, you should set
+          `artifact-name` to something in that step's config, then use that same
+          name here.
         type: string
         default: outputs
         required: false
@@ -200,6 +228,13 @@ jobs:
         with:
           repository: ${{ inputs.repo }}
 
+      - name: Download previous step artifact
+        if: inputs.download-previous-artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.previous-artifact-name }}-${{ matrix.runtime }}
+          path: ${{ inputs.previous-artifact-name }}
+
       # XXX TODO: It would be better for this to call setup-nextstrain-cli
       # using the same ref that this workflow was called with (e.g. if this
       # workflow was invoked by the caller workflow with @foo than we invoke
@@ -239,15 +274,15 @@ jobs:
             echo No example data to copy.
           fi
 
-      - run: nextstrain build . ${{ inputs.build-args }}
+      - run: nextstrain build ${{ inputs.build-target }} ${{ inputs.build-args }}
 
       - if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}-${{ matrix.runtime }}
           path: |
-            auspice/
-            results/
-            benchmarks/
-            logs/
-            .snakemake/log/
+            ${{ inputs.build-target }}/auspice/
+            ${{ inputs.build-target }}/results/
+            ${{ inputs.build-target }}/benchmarks/
+            ${{ inputs.build-target }}/logs/
+            ${{ inputs.build-target }}/.snakemake/log/
