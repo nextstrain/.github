@@ -287,7 +287,7 @@ jobs:
           "$NEXTSTRAIN_GITHUB_DIR"/bin/write-envdir "$NEXTSTRAIN_RUNTIME_ENVDIR" \
             AWS_ACCESS_KEY_ID \
             AWS_SECRET_ACCESS_KEY \
-            AWS_SESSION_TOKEN
+            ${AWS_SESSION_TOKEN:+AWS_SESSION_TOKEN}
         # This will overwrite the runtime AWS credential envvars configured above
         # so if the build is using the aws-batch runtime, the Nextstrain CLI will
         # have access to the AWS Batch session credentials
