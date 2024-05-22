@@ -17,6 +17,21 @@ mkdir -pv "$dir"
 cd "$dir"
 
 for name in "$@"; do
+    # We could use [[ -v "$name" ]] if we didn't care about ancient Bash on
+    # macOS.  Since we kinda do—it's useful in dev for folks to be able to run
+    # programs locally—use `declare | grep` instead.  This is imperfect: if
+    # $name contains regex metachars they'll be interpreted when they shouldn't
+    # be.  Ah well.  I don't expect that to actually happen.
+    #
+    # We don't use ${!name:+…} or ${!name:-} to detect set/unset because they
+    # both treat declared-but-empty-string-valued variables as unset.  It's a
+    # legitimate use case to want to set a env var to an empty string.
+    #
+    #   -trs, 22 May 2024
+    if ! declare | grep -qE "^$name="; then
+        echo "error: $name is not set" >&2
+        exit 1
+    fi
     echo "${!name}" > "$name"
     echo "Wrote $dir/$name"
 done
