@@ -106,6 +106,7 @@ Executable scripts that are used in our workflows.
 
 - [interpolate-env](bin/interpolate-env)
 - [json-to-envvars](bin/json-to-envvars)
+- [write-envdir](bin/write-envdir)
 - [yaml-to-envvars](bin/yaml-to-envvars)
 
 ## Workflow text templates
