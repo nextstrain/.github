@@ -1,0 +1,39 @@
+name: run-nextstrain-build-step
+description: >-
+  Runs a single `nextstrain build` command in a given sub-directory of
+  a pathogen repo. Must be provided with the name of the
+  sub-directory.
+
+inputs:
+  step:
+    description: The name of the sub-directory to run the build from
+    type: string
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - id: run-build
+      env:
+        STEP: ${{ inputs.step }}
+      run: |
+        if [[ -f nextstrain-pathogen.yaml && -f $STEP/Snakefile && -f $STEP/build-configs/ci/config.yaml ]]; then
+          nextstrain build $STEP --configfile build-configs/ci/config.yaml
+        else
+          echo "Skipping $STEP build due to one or more missing files."
+          for i in nextstrain-pathogen.yaml $STEP/Snakefile $STEP/build-configs/ci/config.yaml; do
+            ! test -f $i && echo missing $i
+          done
+        fi
+      shell: bash
+
+    - id: upload-artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{inputs.step }}-outputs-${{ matrix.runtime }}
+        path: |
+          ${{ inputs.step }}/results/
+          ${{ inputs.step }}/benchmarks/
+          ${{ inputs.step }}/logs/
+          ${{ inputs.step }}/.snakemake/log/

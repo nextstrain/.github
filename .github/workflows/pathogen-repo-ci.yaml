@@ -3,6 +3,15 @@
 # workflow) in this repo for an example of what the caller workflow looks like.
 name: CI
 
+defaults:
+  run:
+    # This is the same as GitHub Action's `bash` keyword as of 20 June 2023:
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell
+    #
+    # Completely spelling it out here so that GitHub can't change it out from under us
+    # and we don't have to refer to the docs to know the expected behavior.
+    shell: bash --noprofile --norc -eo pipefail {0}
+
 on:
   workflow_call:
     inputs:
@@ -85,7 +94,11 @@ on:
 
 permissions:
   contents: read
+  id-token: write
   packages: read
+
+env:
+  NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
 
 jobs:
   configuration:
@@ -101,8 +114,17 @@ jobs:
     outputs:
       runtimes: ${{ steps.inputs.outputs.runtimes }}
 
-  build:
-    needs: configuration
+  workflow-context:
+    runs-on: ubuntu-latest
+    steps:
+      - id: workflow-context
+        uses: nextstrain/.github/actions/workflow-context@master
+    outputs:
+      repository: ${{ steps.workflow-context.outputs.repository }}
+      sha: ${{ steps.workflow-context.outputs.sha }}
+
+  nextstrain-build:
+    needs: [configuration, workflow-context]
     strategy:
       fail-fast: false
       matrix:
@@ -201,47 +223,33 @@ jobs:
         with:
           repository: ${{ inputs.repo }}
 
-      # XXX TODO: It would be better for this to call setup-nextstrain-cli
-      # using the same ref that this workflow was called with (e.g. if this
-      # workflow was invoked by the caller workflow with @foo than we invoke
-      # the action with @foo too), but it's not currently possible to figure
-      # out that ref.  See discussion around this (including results of some
-      # investigation I did):
-      #
-      #   - https://github.community/t/reusable-workflows-get-the-ref-inside-the-called-workflow/224109
-      #   - https://github.community/t/ref-head-in-reusable-workflows/203690/92
-      #
-      # Once we can figure out that ref, then we can actions/checkout our
-      # nextstrain/.github repo at that ref as a sidecar path somewhere and
-      # then invoke the setup-nextstrain-cli action using a local file path
-      # instead of a remote owner/repo path.  This separate checkout will be
-      # necessary since the "uses:" key can't be interpolated (${{…}}) with
-      # context vars.
-      #
-      # For now, update the hardcoded ref (e.g. @90af34…) below when you make
-      # future changes to setup-nextstrain-cli.
-      #
-      # [ Update 16 Feb 2024: We solved this for pathogen-repo-build.yaml, but
-      #   because it required a new permission on the GitHub tokens (id-token:
-      #   write) we decided not to update this workflow (yet?) to use the same
-      #   approach. -trs ]
-      #
-      #   -trs, 28 April 2022
-      - name: Setup Nextstrain
-        uses: nextstrain/.github/actions/setup-nextstrain-cli@c1191de9d5e1a30e91d70b0fd1041d97ed1b2496
+      - # Need to run this after the build repo is cloned so that cloning the
+        # build repo does not overwrite the .git dir and remove the extra support files
+        # that we need from nextstrain/.github repo
+        name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
+        uses: actions/checkout@v4
         with:
+          repository: ${{ needs.workflow-context.outputs.repository }}
+          ref: ${{ needs.workflow-context.outputs.sha }}
+          path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
+
+      - name: Setup Nextstrain runtime ${{ matrix.runtime }}
+        uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
+        with:
+          cli-version: ">=8.3.0"
           runtime: ${{ matrix.runtime }}
 
-
-      - run: nextstrain build . ${{ inputs.build-args }}
-
-      - if: always()
-        uses: actions/upload-artifact@v4
+      - name: Run ingest
+        uses: ./.git/nextstrain/.github/actions/run-nextstrain-build-step
         with:
-          name: ${{ inputs.artifact-name }}-${{ matrix.runtime }}
-          path: |
-            auspice/
-            results/
-            benchmarks/
-            logs/
-            .snakemake/log/
+          step: ingest
+
+      - name: Run phylogenetic
+        uses: ./.git/nextstrain/.github/actions/run-nextstrain-build-step
+        with:
+          step: phylogenetic
+
+      - name: Run nextclade
+        uses: ./.git/nextstrain/.github/actions/run-nextstrain-build-step
+        with:
+          step: nextclade
