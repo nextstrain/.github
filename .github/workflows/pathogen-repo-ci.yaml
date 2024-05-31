@@ -232,14 +232,6 @@ jobs:
         with:
           runtime: ${{ matrix.runtime }}
 
-      - name: Copy example data
-        run: |
-          if [[ -d example_data ]]; then
-            mkdir -p data/
-            cp -r -v example_data/* data/
-          else
-            echo No example data to copy.
-          fi
 
       - run: nextstrain build . ${{ inputs.build-args }}
 
