@@ -196,7 +196,8 @@ jobs:
           '
           | tee -a "$GITHUB_ENV"
 
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repo }}
 
@@ -226,7 +227,8 @@ jobs:
       #   approach. -trs ]
       #
       #   -trs, 28 April 2022
-      - uses: nextstrain/.github/actions/setup-nextstrain-cli@c1191de9d5e1a30e91d70b0fd1041d97ed1b2496
+      - name: Setup Nextstrain
+        uses: nextstrain/.github/actions/setup-nextstrain-cli@c1191de9d5e1a30e91d70b0fd1041d97ed1b2496
         with:
           runtime: ${{ matrix.runtime }}
 
