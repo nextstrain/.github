@@ -218,7 +218,7 @@ jobs:
           '
           | tee -a "$GITHUB_ENV"
 
-      - name: Checkout repo
+      - name: Checkout ${{ inputs.repo }}
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repo }}
@@ -233,23 +233,23 @@ jobs:
           ref: ${{ needs.workflow-context.outputs.sha }}
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
 
-      - name: Setup Nextstrain runtime ${{ matrix.runtime }}
+      - name: Set up Nextstrain runtime ${{ matrix.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
           cli-version: ">=8.3.0"
           runtime: ${{ matrix.runtime }}
 
       - name: Run ingest
-        uses: ./.git/nextstrain/.github/actions/run-nextstrain-build-step
+        uses: ./.git/nextstrain/.github/actions/run-nextstrain-build
         with:
-          step: ingest
+          directory: ingest
 
       - name: Run phylogenetic
-        uses: ./.git/nextstrain/.github/actions/run-nextstrain-build-step
+        uses: ./.git/nextstrain/.github/actions/run-nextstrain-build
         with:
-          step: phylogenetic
+          directory: phylogenetic
 
       - name: Run nextclade
-        uses: ./.git/nextstrain/.github/actions/run-nextstrain-build-step
+        uses: ./.git/nextstrain/.github/actions/run-nextstrain-build
         with:
-          step: nextclade
+          directory: nextclade

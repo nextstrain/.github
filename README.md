@@ -29,7 +29,7 @@ See also GitHub's [documentation on issue and PR templates](https://docs.github.
 
 Invoked by our GitHub Actions workflows, including the reusable workflows below.
 
-- [Run Nextstrain Build Step](actions/run-nextstrain-build-step/action.yaml)
+- [Run Nextstrain Build](actions/run-nextstrain-build/action.yaml)
 - [Setup Nextstrain CLI](actions/setup-nextstrain-cli/action.yaml)
 - [shellcheck](actions/shellcheck/action.yaml)
 - [Setup SSH](actions/setup-ssh/action.yaml) access to runner machine
