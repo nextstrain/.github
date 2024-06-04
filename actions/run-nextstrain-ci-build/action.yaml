@@ -1,4 +1,4 @@
-name: run-nextstrain-build
+name: run-nextstrain-ci-build
 description: >-
   Runs a single `nextstrain build` command in a given sub-directory of
   a pathogen repo. Must be provided with the name of the sub-directory
