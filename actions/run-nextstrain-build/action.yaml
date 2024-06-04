@@ -1,12 +1,22 @@
 name: run-nextstrain-build
 description: >-
   Runs a single `nextstrain build` command in a given sub-directory of
-  a pathogen repo. Must be provided with the name of the
-  sub-directory.
+  a pathogen repo. Must be provided with the name of the sub-directory
+  and the runtime to use. Requires that the Nextstrain CLI runtime
+  already be provisioned (e.g., via the `setup-nextstrain-cli` action
+  in this repo).
+
+  Note that this action exists primarily as a means to keep the
+  `pathogen-repo-ci` workflow DRY; it is unlikely to be useful outside
+  the context of that specific workflow.
 
 inputs:
   directory:
     description: The name of the sub-directory to run the build from
+    type: string
+    required: true
+  runtime:
+    description: Nextstrain runtime to use for the build
     type: string
     required: true
 

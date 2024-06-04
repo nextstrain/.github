@@ -243,13 +243,16 @@ jobs:
         uses: ./.git/nextstrain/.github/actions/run-nextstrain-build
         with:
           directory: ingest
+          runtime: ${{ matrix.runtime }}
 
       - name: Run phylogenetic
         uses: ./.git/nextstrain/.github/actions/run-nextstrain-build
         with:
           directory: phylogenetic
+          runtime: ${{ matrix.runtime }}
 
       - name: Run nextclade
         uses: ./.git/nextstrain/.github/actions/run-nextstrain-build
         with:
           directory: nextclade
+          runtime: ${{ matrix.runtime }}
