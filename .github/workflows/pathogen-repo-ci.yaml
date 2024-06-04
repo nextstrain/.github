@@ -223,10 +223,10 @@ jobs:
         with:
           repository: ${{ inputs.repo }}
 
-      - # Need to run this after the build repo is cloned so that cloning the
-        # build repo does not overwrite the .git dir and remove the extra support files
-        # that we need from nextstrain/.github repo
-        name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
+      # Need to run this after the build repo is cloned so that cloning the
+      # build repo does not overwrite the .git dir and remove the extra support files
+      # that we need from nextstrain/.github repo
+      - name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
         uses: actions/checkout@v4
         with:
           repository: ${{ needs.workflow-context.outputs.repository }}
