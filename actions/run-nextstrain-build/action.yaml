@@ -32,8 +32,10 @@ runs:
       uses: actions/upload-artifact@v4
       with:
         name: ci-outputs-${{ inputs.directory }}-${{ inputs.runtime }}
+        if-no-files-found: ignore
         path: |
-          ${{ inputs.directory }}/results/
+          ${{ inputs.directory }}/.snakemake/log/
+          ${{ inputs.directory }}/auspice/
           ${{ inputs.directory }}/benchmarks/
           ${{ inputs.directory }}/logs/
-          ${{ inputs.directory }}/.snakemake/log/
+          ${{ inputs.directory }}/results/
