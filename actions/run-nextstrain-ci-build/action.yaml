@@ -28,6 +28,7 @@ runs:
         DIR: ${{ inputs.directory }}
       run: |
         if [[ -f nextstrain-pathogen.yaml && -f $DIR/Snakefile && -f $DIR/build-configs/ci/config.yaml ]]; then
+          nextstrain check-setup ${{ inputs.runtime }} --set-default
           nextstrain build $DIR --configfile build-configs/ci/config.yaml
         else
           echo "Skipping $DIR build due to one or more missing files."
