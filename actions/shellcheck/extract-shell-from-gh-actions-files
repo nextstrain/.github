@@ -77,10 +77,17 @@ def extract_shell_steps(workflow, job, job_output_dir, terminator):
         # by ShellCheck.
         run_shell = re.sub(r'\$\{\{.+?\}\}', "…", run_shell)
 
+        # Use job and step env to hint to ShellCheck what env vars are defined.
+        # By default it already assumes UPPERCASE vars are always defined, but
+        # it will warn about lowercase vars that it doesn't know about.
+        env = {**job.get("env", {}), **step.get("env", {})}
+
         step_output_file = job_output_dir / f"step-{fssafe(step_name)}"
 
         with step_output_file.open("w", encoding = "utf-8") as fh:
             print(f"#!/bin/{shell}", file = fh)
+            if env:
+                print("export", *env.keys(), file = fh)
             print(run_shell, file = fh)
 
         print(step_output_file, end = terminator)
