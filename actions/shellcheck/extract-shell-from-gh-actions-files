@@ -85,7 +85,8 @@ def extract_shell_steps(workflow, job, job_output_dir, terminator):
         step_output_file = job_output_dir / f"step-{fssafe(step_name)}"
 
         with step_output_file.open("w", encoding = "utf-8") as fh:
-            print(f"#!/bin/{shell}", file = fh)
+            print(f"#!{shell_cmd(workflow, job, step)}", file = fh)
+            print(f"# shellcheck disable=SC2096,SC2239", file = fh)
             if env:
                 print("export", *env.keys(), file = fh)
             print(run_shell, file = fh)
@@ -94,6 +95,10 @@ def extract_shell_steps(workflow, job, job_output_dir, terminator):
 
 
 def shell_name(workflow, job, step):
+    return Path(shsplit(shell_cmd(workflow, job, step))[0]).stem.lower()
+
+
+def shell_cmd(workflow, job, step):
     def default_shell(x):
         x.get("defaults", {}).get("run", {}).get("shell")
 
@@ -101,11 +106,17 @@ def shell_name(workflow, job, step):
          or default_shell(job) \
          or default_shell(workflow)
 
-    if shell:
-        return Path(shsplit(shell)[0]).stem.lower()
-    else:
-        # defaults from <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell>
-        return "pwsh" if runs_on_windows(job) else "bash"
+    # expansions and defaults from <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsshell>
+    if shell == "bash":
+        shell = "bash --noprofile --norc -eo pipefail {0}"
+
+    elif shell == "sh":
+        shell = "sh -e {0}"
+
+    elif not shell:
+        shell = "pwsh" if runs_on_windows(job) else "bash -e {0}"
+
+    return shell.replace("{0}", "")
 
 
 def runs_on_windows(job):
