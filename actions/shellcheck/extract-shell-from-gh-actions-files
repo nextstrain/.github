@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-usage: extract-shell-from-gh-workflow [-0] <output-dir> <workflow-file> [<workflow-file> […]]
+usage: extract-shell-from-gh-actions-files [-0] <output-dir> <file> [<file> […]]
 
-Writes the shell snippets in a GitHub Actions workflow file to a set of
-separate files.  There's one file for each workflow × job × step (with a "run"
-block).  The produced file names are printed to stdout.  Use the -0 option to
-terminate them with a null byte (\\x00) instead of a newline (\\x0a).
+Writes the shell snippets in a GitHub Actions workflow file or composite action
+file to a set of separate files.  There's one file for each workflow × job ×
+step or composite action × step (for steps with a "run" block).  The produced
+file names are printed to stdout.  Use the -0 option to terminate them with a
+null byte (\\x00) instead of a newline (\\x0a).
 """
 from pathlib import Path
 from shlex import split as shsplit
@@ -18,7 +19,7 @@ import yaml
 __usage__ = __doc__
 
 
-def main(output_dir, *workflow_files, terminator = "\n"):
+def main(output_dir, *files, terminator = "\n"):
     if not output_dir:
         return fatal(f"no output dir given")
 
@@ -27,21 +28,35 @@ def main(output_dir, *workflow_files, terminator = "\n"):
     if not output_dir.is_dir():
         return fatal(f"output path {output_dir!r} is not a directory or does not exist")
 
-    if not workflow_files:
-        return fatal(f"no workflow files given")
+    if not files:
+        return fatal(f"no files given")
 
-    for workflow_file in (Path(w) for w in workflow_files):
-        with workflow_file.open("r", encoding = "utf-8") as fh:
-            workflow = yaml.safe_load(fh)
+    for file in (Path(f) for f in files):
+        with file.open("r", encoding = "utf-8") as fh:
+            contents = yaml.safe_load(fh)
 
-        workflow_output_dir = output_dir / workflow_file.name
-        workflow_output_dir.mkdir()
+        # Workflow
+        if contents.get("jobs"):
+            workflow = contents
+            workflow_output_dir = output_dir / "workflows" / file.name
+            workflow_output_dir.mkdir(parents = True)
 
-        for job_name, job in workflow.get("jobs", {}).items():
-            job_output_dir = workflow_output_dir / f"job-{fssafe(job_name)}"
-            job_output_dir.mkdir()
+            for job_name, job in workflow.get("jobs", {}).items():
+                job_output_dir = workflow_output_dir / f"job-{fssafe(job_name)}"
+                job_output_dir.mkdir()
 
-            extract_shell_steps(workflow, job, job_output_dir, terminator)
+                extract_shell_steps(workflow, job, job_output_dir, terminator)
+
+        # Composite action
+        elif contents.get("runs", {}).get("using") == "composite":
+            action = contents
+            action_output_dir = output_dir / "actions" / file.parent.name
+            action_output_dir.mkdir(parents = True)
+
+            extract_shell_steps({}, {"steps": action.get("runs", {}).get("steps", [])}, action_output_dir, terminator)
+
+        else:
+            return fatal(f"file {file} does not appear to be a GitHub Actions workflow file or composite action file")
 
 
 def extract_shell_steps(workflow, job, job_output_dir, terminator):
