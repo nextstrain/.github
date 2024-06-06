@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-usage: extract-gh-actions-shell [-0] <output-dir> <workflow-file> [<workflow-file> […]]
+usage: extract-shell-from-gh-workflow [-0] <output-dir> <workflow-file> [<workflow-file> […]]
 
 Writes the shell snippets in a GitHub Actions workflow file to a set of
 separate files.  There's one file for each workflow × job × step (with a "run"
