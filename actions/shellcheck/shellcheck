@@ -27,7 +27,7 @@ shell-files() {
 }
 
 workflow-shell() {
-    tmpdir="$base/.github/workflows/_shellcheck/"
+    local tmpdir="$base/.github/workflows/_shellcheck/"
     rm -rf "$tmpdir"
     mkdir "$tmpdir"
     echo "*" > "$tmpdir/.gitignore"
