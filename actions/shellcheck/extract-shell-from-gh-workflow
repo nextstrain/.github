@@ -41,30 +41,34 @@ def main(output_dir, *workflow_files, terminator = "\n"):
             job_output_dir = workflow_output_dir / f"job-{fssafe(job_name)}"
             job_output_dir.mkdir()
 
-            for step_idx, step in enumerate(job.get("steps", []), 1):
-                step_name = step.get("name", str(step_idx))
-                run_shell = step.get("run")
+            extract_shell_steps(workflow, job, job_output_dir, terminator)
 
-                if run_shell is None:
-                    continue
 
-                shell = shell_name(workflow, job, step)
+def extract_shell_steps(workflow, job, job_output_dir, terminator):
+    for step_idx, step in enumerate(job.get("steps", []), 1):
+        step_name = step.get("name", str(step_idx))
+        run_shell = step.get("run")
 
-                if shell not in {"bash", "sh"}:
-                    continue
+        if run_shell is None:
+            continue
 
-                # Replace GitHub Actions workflow interpolations (${{ … }})
-                # with a placeholder so it doesn't cause false issues reported
-                # by ShellCheck.
-                run_shell = re.sub(r'\$\{\{.+?\}\}', "…", run_shell)
+        shell = shell_name(workflow, job, step)
 
-                step_output_file = job_output_dir / f"step-{fssafe(step_name)}"
+        if shell not in {"bash", "sh"}:
+            continue
 
-                with step_output_file.open("w", encoding = "utf-8") as fh:
-                    print(f"#!/bin/{shell}", file = fh)
-                    print(run_shell, file = fh)
+        # Replace GitHub Actions workflow interpolations (${{ … }})
+        # with a placeholder so it doesn't cause false issues reported
+        # by ShellCheck.
+        run_shell = re.sub(r'\$\{\{.+?\}\}', "…", run_shell)
 
-                print(step_output_file, end = terminator)
+        step_output_file = job_output_dir / f"step-{fssafe(step_name)}"
+
+        with step_output_file.open("w", encoding = "utf-8") as fh:
+            print(f"#!/bin/{shell}", file = fh)
+            print(run_shell, file = fh)
+
+        print(step_output_file, end = terminator)
 
 
 def shell_name(workflow, job, step):
