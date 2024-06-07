@@ -19,21 +19,21 @@ main() {
 
 find-files() {
     shell-files
-    workflow-shell
+    actions-shell
 }
 
 shell-files() {
     git grep -lzP '^#!(.*?)(ba)?sh'
 }
 
-workflow-shell() {
-    tmpdir="$base/.github/workflows/_shellcheck/"
+actions-shell() {
+    local tmpdir="$base/.github/_shellcheck/"
     rm -rf "$tmpdir"
     mkdir "$tmpdir"
     echo "*" > "$tmpdir/.gitignore"
 
-    git ls-files -z :/.github/workflows/'*'.y{a,}ml \
-        | xargs -0 "$bin"/extract-shell-from-gh-workflow -0 "$tmpdir"
+    git ls-files -z :/.github/workflows/'*'.y{a,}ml :'**'/action.y{a,}ml \
+        | xargs -0 "$bin"/extract-shell-from-gh-actions-files -0 "$tmpdir"
 }
 
 download() {
