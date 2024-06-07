@@ -1,7 +1,3 @@
-# If you update this action, please update the hardcoded ref to it in
-# .github/workflows/pathogen-repo-ci.yaml.  See the commentary there for why
-# it's necessary.
-
 name: Setup Nextstrain CLI
 description: >-
   This GitHub Actions action is intended to be called by workflows in our other

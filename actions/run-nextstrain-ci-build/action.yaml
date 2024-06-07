@@ -1,0 +1,58 @@
+name: run-nextstrain-ci-build
+description: >-
+  Runs a single `nextstrain build` command in a given sub-directory of
+  a pathogen repo. Must be provided with the name of the sub-directory
+  and the runtime to use. Requires that the Nextstrain CLI runtime
+  already be provisioned (e.g., via the `setup-nextstrain-cli` action
+  in this repo).
+
+  Note that this action exists primarily as a means to keep the
+  `pathogen-repo-ci` workflow DRY; it is unlikely to be useful outside
+  the context of that specific workflow.
+
+inputs:
+  artifact-name:
+    description: >-
+      Name to append to the build directory to generate a
+      unique artifact name for the upload action.
+    type: string
+    required: true
+  directory:
+    description: The name of the sub-directory to run the build from
+    type: string
+    required: true
+  runtime:
+    description: Nextstrain runtime to use for the build
+    type: string
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - id: run-build
+      env:
+        DIR: ${{ inputs.directory }}
+      run: |
+        if [[ -f nextstrain-pathogen.yaml && -f "$DIR"/Snakefile && -f "$DIR"/build-configs/ci/config.yaml ]]; then
+          nextstrain check-setup ${{ inputs.runtime }} --set-default
+          nextstrain build "$DIR" --configfile build-configs/ci/config.yaml
+        else
+          echo "Skipping $DIR build due to one or more missing files."
+          for i in nextstrain-pathogen.yaml "$DIR"/Snakefile "$DIR"/build-configs/ci/config.yaml; do
+            [[ -f $i ]] || echo missing $i
+          done
+        fi
+      shell: bash
+
+    - id: upload-artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}-${{ inputs.directory }}-${{ inputs.runtime }}
+        if-no-files-found: ignore
+        path: |
+          ${{ inputs.directory }}/.snakemake/log/
+          ${{ inputs.directory }}/auspice/
+          ${{ inputs.directory }}/benchmarks/
+          ${{ inputs.directory }}/logs/
+          ${{ inputs.directory }}/results/

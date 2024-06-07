@@ -26,11 +26,7 @@ jobs:
   test-pathogen-repo-ci:
     uses: ./.github/workflows/pathogen-repo-ci.yaml
     with:
-      # XXX TODO: Revert back to nextstrain/zika (for consistency with
-      # elsewhere) once pathogen-repo-ci has support for running workflows in
-      # subdirs (i.e. for our new repo layout).
-      #   -trs, 30 Jan 2024
-      repo: nextstrain/ebola
+      repo: nextstrain/zika
       artifact-name: outputs-test-pathogen-repo-ci
     secrets: inherit
 
