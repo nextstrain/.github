@@ -74,15 +74,20 @@ on:
 
       artifact-name:
         description: >-
-          Name to use for build results artifact uploaded at the end of the
-          workflow.  This name will be suffixed with other information from the
-          workflow job matrix to distinguish each artifact in a workflow run.
+          A base name to use for the uploaded artifacts from the
+          build. This will be concatenated with the directory name
+          used to invoke the build to generate the full artifact file
+          name.
 
-          If you're invoking this workflow multiple times from the same calling
-          workflow, you should set this.  Otherwise, the default of "outputs"
-          is probably fine.
+          Defaults to `ci-outputs`.
+
+          N.b., you almost certainly don't need to change this, unless
+          you're running multiple invocations of this action in a
+          single workflow. Then you should provide unique values to
+          ensure you can access the artifacts from all the builds
+          you're doing.
         type: string
-        default: outputs
+        default: ci-outputs
         required: false
 
       continue-on-error:
@@ -244,15 +249,18 @@ jobs:
         with:
           directory: ingest
           runtime: ${{ matrix.runtime }}
+          artifact-name: ${{ inputs.artifact-name }}
 
       - name: Run phylogenetic
         uses: ./.git/nextstrain/.github/actions/run-nextstrain-ci-build
         with:
           directory: phylogenetic
           runtime: ${{ matrix.runtime }}
+          artifact-name: ${{ inputs.artifact-name }}
 
       - name: Run nextclade
         uses: ./.git/nextstrain/.github/actions/run-nextstrain-ci-build
         with:
           directory: nextclade
           runtime: ${{ matrix.runtime }}
+          artifact-name: ${{ inputs.artifact-name }}

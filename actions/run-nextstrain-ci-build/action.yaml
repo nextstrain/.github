@@ -11,6 +11,12 @@ description: >-
   the context of that specific workflow.
 
 inputs:
+  artifact-name:
+    description: >-
+      Name to append to the build directory to generate a
+      unique artifact name for the upload action.
+    type: string
+    required: true
   directory:
     description: The name of the sub-directory to run the build from
     type: string
@@ -42,7 +48,7 @@ runs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: ci-outputs-${{ inputs.directory }}-${{ inputs.runtime }}
+        name: ${{ inputs.artifact-name }}-${{ inputs.directory }}-${{ inputs.runtime }}
         if-no-files-found: ignore
         path: |
           ${{ inputs.directory }}/.snakemake/log/
