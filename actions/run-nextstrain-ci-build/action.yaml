@@ -39,7 +39,7 @@ runs:
         else
           echo "Skipping $DIR build due to one or more missing files."
           for i in nextstrain-pathogen.yaml "$DIR"/Snakefile "$DIR"/build-configs/ci/config.yaml; do
-            [[ -f $i ]] || echo missing $i
+            [[ -f $i ]] || echo missing "$i"
           done
         fi
       shell: bash
