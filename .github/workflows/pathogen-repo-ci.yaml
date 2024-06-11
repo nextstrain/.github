@@ -238,6 +238,13 @@ jobs:
           ref: ${{ needs.workflow-context.outputs.sha }}
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
 
+      - name: Verify nextstrain-pathogen.yaml file
+        run: >
+          if [[ ! -f nextstrain-pathogen.yaml ]]; then
+            echo "To use this workflow, there must be a 'nextstrain-pathogen.yaml' file present in the repository root";
+            exit 1;
+          fi
+
       - name: Set up Nextstrain runtime ${{ matrix.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
