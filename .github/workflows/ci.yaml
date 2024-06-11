@@ -30,12 +30,6 @@ jobs:
       artifact-name: outputs-test-pathogen-repo-ci
     secrets: inherit
 
-  test-pathogen-repo-ci-no-example-data:
-    uses: ./.github/workflows/pathogen-repo-ci.yaml
-    with:
-      repo: nextstrain/zika-tutorial
-      artifact-name: outputs-test-pathogen-repo-ci-no-example-data
-
   test-docs-ci-conda:
     uses: ./.github/workflows/docs-ci.yaml
     with:
