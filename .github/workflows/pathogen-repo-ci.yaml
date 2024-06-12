@@ -21,6 +21,10 @@ on:
         type: string
         default: ${{ github.repository }}
         required: false
+      ref:
+        type: string
+        default: ""
+        required: false
       env:
         description: >-
           Additional environment variables to set before the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
@@ -73,6 +77,10 @@ on:
         required: false
   workflow_dispatch:
     inputs:
+      ref:
+        type: string
+        default: ""
+        required: false
       env:
         description: >-
           Additional environment variables to set before the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
@@ -251,6 +259,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repo }}
+          ref: ${{ inputs.ref }}
       # Need to run this after the build repo is cloned so that cloning the
       # build repo does not overwrite the .git dir and remove the extra support files
       # that we need from nextstrain/.github repo

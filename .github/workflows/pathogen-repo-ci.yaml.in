@@ -23,6 +23,11 @@ on:
         default: ${{ github.repository }}
         required: false
 
+      ref:
+        type: string
+        default: ""
+        required: false
+
       env:
         description: >-
           Additional environment variables to set before the build, as a string
@@ -229,6 +234,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repo }}
+          ref: ${{ inputs.ref }}
 
       # Need to run this after the build repo is cloned so that cloning the
       # build repo does not overwrite the .git dir and remove the extra support files
