@@ -15,14 +15,6 @@ defaults:
 on:
   workflow_call:
     inputs:
-      build-args:
-        description: >-
-          Additional command-line arguments to pass to `nextstrain build` after
-          the build directory (e.g. to Snakemake).
-        type: string
-        default: ""
-        required: false
-
       repo:
         description: >-
           Repository name with owner (e.g. nextstrain/zika).  Defaults to the
