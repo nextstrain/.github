@@ -238,6 +238,13 @@ jobs:
           ref: ${{ needs.workflow-context.outputs.sha }}
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
 
+      - name: Verify nextstrain-pathogen.yaml file
+        run: >
+          if [[ ! -f nextstrain-pathogen.yaml ]]; then
+            echo "To use this workflow, there must be a 'nextstrain-pathogen.yaml' file present in the repository root";
+            exit 1;
+          fi
+
       - name: Set up Nextstrain runtime ${{ matrix.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:
@@ -245,6 +252,7 @@ jobs:
           runtime: ${{ matrix.runtime }}
 
       - name: Run ingest
+        id: ingest
         uses: ./.git/nextstrain/.github/actions/run-nextstrain-ci-build
         with:
           directory: ingest
@@ -252,6 +260,7 @@ jobs:
           artifact-name: ${{ inputs.artifact-name }}
 
       - name: Run phylogenetic
+        id: phylogenetic
         uses: ./.git/nextstrain/.github/actions/run-nextstrain-ci-build
         with:
           directory: phylogenetic
@@ -259,8 +268,19 @@ jobs:
           artifact-name: ${{ inputs.artifact-name }}
 
       - name: Run nextclade
+        id: nextclade
         uses: ./.git/nextstrain/.github/actions/run-nextstrain-ci-build
         with:
           directory: nextclade
           runtime: ${{ matrix.runtime }}
           artifact-name: ${{ inputs.artifact-name }}
+
+      - name: Verify a workflow ran
+        run: |
+          # shellcheck disable=SC2129,SC2242
+
+          # if we see at least one success, we're good
+          echo "INGEST ATTEMPTED=${{ steps.ingest.outputs.run-attempted }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "PHYLOGENETIC ATTEMPTED=${{ steps.phylogenetic.outputs.run-attempted }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "NEXTCLADE ATTEMPTED=${{ steps.nextclade.outputs.run-attempted }}" >> "$GITHUB_STEP_SUMMARY"
+          exit ${{ contains(steps.*.outputs.run-attempted, 'true') && '0' || '1' }}

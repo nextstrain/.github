@@ -26,6 +26,15 @@ inputs:
     type: string
     required: true
 
+outputs:
+  run-attempted:
+    description: >-
+      Boolean indicating if the build step was _attempted_.
+
+      N.b., this does not indicate if the build step *succeeded*, only
+      that the requirements were met to attempt to run it.
+    value: ${{ steps.run-build.outputs.run-attempted }}
+
 runs:
   using: "composite"
   steps:
@@ -33,12 +42,16 @@ runs:
       env:
         DIR: ${{ inputs.directory }}
       run: |
-        if [[ -f nextstrain-pathogen.yaml && -f "$DIR"/Snakefile && -f "$DIR"/build-configs/ci/config.yaml ]]; then
+        if [[ -f "$DIR"/Snakefile && -f "$DIR"/build-configs/ci/config.yaml ]]; then
+          echo "run-attempted=true" >> "$GITHUB_OUTPUT"
+
           nextstrain check-setup ${{ inputs.runtime }} --set-default
           nextstrain build "$DIR" --configfile build-configs/ci/config.yaml
         else
+          echo "run-attempted=false" >> "$GITHUB_OUTPUT"
+
           echo "Skipping $DIR build due to one or more missing files."
-          for i in nextstrain-pathogen.yaml "$DIR"/Snakefile "$DIR"/build-configs/ci/config.yaml; do
+          for i in "$DIR"/Snakefile "$DIR"/build-configs/ci/config.yaml; do
             [[ -f $i ]] || echo missing "$i"
           done
         fi
