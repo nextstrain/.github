@@ -1,4 +1,4 @@
-| workflow      | conclusion      |
+| workflow      | outcome         |
 | ------------- | --------------- |
 | ingest        | ${ingest}       |
 | phylogenetic  | ${phylogenetic} |
