@@ -305,10 +305,13 @@ jobs:
           phylogenetic: ${{ steps.phylogenetic.conclusion }}
           nextclade: ${{ steps.nextclade.conclusion }}
         run: |
-          # Show step conclusions.
+          # Show step conclusions in job logs…
           echo "ingest        $ingest"
           echo "phylogenetic  $phylogenetic"
           echo "nextclade     $nextclade"
+
+          # …and also in the workflow summary.
+          "$NEXTSTRAIN_GITHUB_DIR"/bin/interpolate-env < "$NEXTSTRAIN_GITHUB_DIR"/text-templates/pathogen-repo-ci.md > "$GITHUB_STEP_SUMMARY"
 
           # Assert status; if we see at least one attempt, regardless of
           # success/failure, we're good.

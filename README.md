@@ -115,6 +115,7 @@ Executable scripts that are used in our workflows.
 Text templates for messages and summaries in our workflows.
 
 - [attach-aws-batch](text-templates/attach-aws-batch.md)
+- [pathogen-repo-ci](text-templates/pathogen-repo-ci.md)
 
 
 ## Development tools for this repo itself
