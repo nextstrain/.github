@@ -29,7 +29,6 @@ See also GitHub's [documentation on issue and PR templates](https://docs.github.
 
 Invoked by our GitHub Actions workflows, including the reusable workflows below.
 
-- [Run Nextstrain CI Build](actions/run-nextstrain-ci-build/action.yaml)
 - [Setup Nextstrain CLI](actions/setup-nextstrain-cli/action.yaml)
 - [shellcheck](actions/shellcheck/action.yaml)
 - [Setup SSH](actions/setup-ssh/action.yaml) access to runner machine
@@ -46,7 +45,8 @@ See also GitHub's [documentation on creating custom actions](https://docs.github
 Invoked by other repos.
 
 - CI for pathogen repos
-  ([workflow](.github/workflows/pathogen-repo-ci.yaml))
+  ([workflow source](.github/workflows/pathogen-repo-ci.yaml.in),
+   [workflow compiled](.github/workflows/pathogen-repo-ci.yaml))
 
 - CI for docs
   ([workflow](.github/workflows/docs-ci.yaml))
@@ -115,6 +115,7 @@ Executable scripts that are used in our workflows.
 Text templates for messages and summaries in our workflows.
 
 - [attach-aws-batch](text-templates/attach-aws-batch.md)
+- [pathogen-repo-ci](text-templates/pathogen-repo-ci.md)
 
 
 ## Development tools for this repo itself
