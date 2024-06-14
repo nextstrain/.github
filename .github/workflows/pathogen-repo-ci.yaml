@@ -286,16 +286,18 @@ jobs:
         if: hashFiles('ingest/Snakefile') && hashFiles('ingest/build-configs/ci/config.yaml')
         id: ingest
         run: nextstrain build ingest --configfile build-configs/ci/config.yaml
+        continue-on-error: true
       - name: Run phylogenetic
         if: hashFiles('phylogenetic/Snakefile') && hashFiles('phylogenetic/build-configs/ci/config.yaml')
         id: phylogenetic
         run: nextstrain build phylogenetic --configfile build-configs/ci/config.yaml
+        continue-on-error: true
       - name: Run nextclade
         if: hashFiles('nextclade/Snakefile') && hashFiles('nextclade/build-configs/ci/config.yaml')
         id: nextclade
         run: nextstrain build nextclade --configfile build-configs/ci/config.yaml
-      - if: always()
-        uses: actions/upload-artifact@v4
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}-${{ matrix.runtime }}
           if-no-files-found: ignore
@@ -320,11 +322,13 @@ jobs:
             nextclade/results/
       - name: Verify a workflow ran
         env:
-          ingest: ${{ steps.ingest.conclusion }}
-          phylogenetic: ${{ steps.phylogenetic.conclusion }}
-          nextclade: ${{ steps.nextclade.conclusion }}
+          # "outcome" is success/failure/cancelled/skipped _before_
+          # "continue-on-error" is applied to calculate "conclusion"
+          ingest: ${{ steps.ingest.outcome }}
+          phylogenetic: ${{ steps.phylogenetic.outcome }}
+          nextclade: ${{ steps.nextclade.outcome }}
         run: |
-          # Show step conclusions in job logs…
+          # Show step outcomes in job logs…
           echo "ingest        $ingest"
           echo "phylogenetic  $phylogenetic"
           echo "nextclade     $nextclade"
@@ -332,6 +336,11 @@ jobs:
           # …and also in the workflow summary.
           "$NEXTSTRAIN_GITHUB_DIR"/bin/interpolate-env < "$NEXTSTRAIN_GITHUB_DIR"/text-templates/pathogen-repo-ci.md > "$GITHUB_STEP_SUMMARY"
 
-          # Assert status; if we see at least one attempt, regardless of
-          # success/failure, we're good.
-          [[ $ingest != skipped || $phylogenetic != skipped || $nextclade != skipped ]]
+          # Assert status; we're good if we see at least one success and the
+          # rest are success or skipped.
+          [[
+               ($ingest == success || $phylogenetic == success || $nextclade == success)
+            && ($ingest       == success || $ingest       == skipped)
+            && ($phylogenetic == success || $phylogenetic == skipped)
+            && ($nextclade    == success || $nextclade    == skipped)
+          ]]
