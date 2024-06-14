@@ -286,18 +286,16 @@ jobs:
         if: hashFiles('ingest/Snakefile') && hashFiles('ingest/build-configs/ci/config.yaml')
         id: ingest
         run: nextstrain build ingest --configfile build-configs/ci/config.yaml
-        continue-on-error: true
       - name: Run phylogenetic
-        if: hashFiles('phylogenetic/Snakefile') && hashFiles('phylogenetic/build-configs/ci/config.yaml')
+        if: hashFiles('phylogenetic/Snakefile') && hashFiles('phylogenetic/build-configs/ci/config.yaml') && !cancelled()
         id: phylogenetic
         run: nextstrain build phylogenetic --configfile build-configs/ci/config.yaml
-        continue-on-error: true
       - name: Run nextclade
-        if: hashFiles('nextclade/Snakefile') && hashFiles('nextclade/build-configs/ci/config.yaml')
+        if: hashFiles('nextclade/Snakefile') && hashFiles('nextclade/build-configs/ci/config.yaml') && !cancelled()
         id: nextclade
         run: nextstrain build nextclade --configfile build-configs/ci/config.yaml
-        continue-on-error: true
-      - uses: actions/upload-artifact@v4
+      - if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ inputs.artifact-name }}-${{ matrix.runtime }}
           if-no-files-found: ignore
@@ -320,10 +318,13 @@ jobs:
             nextclade/benchmarks/
             nextclade/logs/
             nextclade/results/
-      - name: Verify a workflow ran
+      - if: always()
+        name: Verify a workflow ran
         env:
           # "outcome" is success/failure/cancelled/skipped _before_
-          # "continue-on-error" is applied to calculate "conclusion"
+          # "continue-on-error" is applied to calculate "conclusion"; we no
+          # longer use continue-on-error for these steps, but even so,
+          # conceptually here what we want is outcome not conclusion.
           ingest: ${{ steps.ingest.outcome }}
           phylogenetic: ${{ steps.phylogenetic.outcome }}
           nextclade: ${{ steps.nextclade.outcome }}
