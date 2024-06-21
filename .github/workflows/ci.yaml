@@ -49,7 +49,7 @@ jobs:
       id-token: write
     strategy:
       matrix:
-        runtime: [docker, conda, aws-batch]
+        runtime: [docker, conda]
     uses: ./.github/workflows/pathogen-repo-build.yaml
     with:
       repo: nextstrain/zika-tutorial
@@ -58,6 +58,37 @@ jobs:
       artifact-name: build-output-${{ matrix.runtime }}
       env: |
         BOGUS_ENVVAR: BOGUS_ENVVAR
+    secrets: inherit
+
+  # This job has to be separate from the matrix above because we want
+  # to check the aws-batch-job-id output from the workflow but matrix outputs
+  # currently will overwrite each other.
+  # See <https://github.com/orgs/community/discussions/26639>
+  test-pathogen-repo-build-aws-batch:
+    permissions:
+      id-token: write
+    uses: ./.github/workflows/pathogen-repo-build.yaml
+    with:
+      repo: nextstrain/zika-tutorial
+      runtime: aws-batch
+      run: nextstrain build --env BOGUS_ENVVAR .
+      artifact-name: build-output-aws-batch
+      env: |
+        BOGUS_ENVVAR: BOGUS_ENVVAR
+    secrets: inherit
+
+  test-pathogen-repo-build-aws-batch-id-output:
+    needs: [test-pathogen-repo-build-aws-batch]
+    permissions:
+      id-token: write
+    uses: ./.github/workflows/pathogen-repo-build.yaml
+    with:
+      repo: nextstrain/zika-tutorial
+      runtime: aws-batch
+      run: nextstrain build --attach "$AWS_BATCH_JOB_ID" .
+      artifact-name: build-output-aws-batch-reattached
+      env: |
+        AWS_BATCH_JOB_ID: ${{ needs.test-pathogen-repo-build-aws-batch.outputs.aws-batch-job-id }}
     secrets: inherit
 
   lint:
