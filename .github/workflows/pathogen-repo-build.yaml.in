@@ -162,6 +162,19 @@ on:
         type: string
         required: false
 
+    outputs:
+      aws-batch-job-id:
+        description: >-
+          AWS Batch job id of the build if it was run with the `aws-batch` runtime.
+          This can be used to re-attach to the AWS Batch job with:
+
+            nextstrain build --aws-batch --attach <aws-batch-job-id>
+
+          This can be useful to download results from the build and use them
+          in subsequent jobs.
+
+        value: ${{ jobs.run-build.outputs.AWS_BATCH_JOB_ID }}
+
   workflow_dispatch:
     inputs:
       <<: *inputs
@@ -256,6 +269,7 @@ jobs:
           "$NEXTSTRAIN_GITHUB_DIR"/bin/write-envdir "$NEXTSTRAIN_RUNTIME_ENVDIR" \
             AWS_ACCESS_KEY_ID \
             AWS_SECRET_ACCESS_KEY \
+            AWS_DEFAULT_REGION \
             ${AWS_SESSION_TOKEN:+AWS_SESSION_TOKEN}
 
     # This will overwrite the runtime AWS credential envvars configured above
