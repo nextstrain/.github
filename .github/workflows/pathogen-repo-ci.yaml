@@ -6,6 +6,13 @@ name: CI
 on:
   workflow_call:
     inputs:
+      build-runner:
+        description: >-
+          GitHub runner name for build job.
+        type: string
+        default: ubuntu-latest
+        required: false
+
       build-args:
         description: >-
           Additional command-line arguments to pass to `nextstrain build` after
@@ -107,8 +114,8 @@ jobs:
       fail-fast: false
       matrix:
         runtime: ${{ fromJSON(needs.configuration.outputs.runtimes) }}
-    name: build (${{ matrix.runtime }})
-    runs-on: ubuntu-latest
+    name: build (${{ inputs.build-runner }}, ${{ matrix.runtime }})
+    runs-on: ${{ inputs.build-runner }}
     continue-on-error: ${{ inputs.continue-on-error }}
     steps:
       # Log in, if possible, to docker.io (Docker Hub), since authenticated
@@ -244,7 +251,7 @@ jobs:
       - if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.artifact-name }}-${{ matrix.runtime }}
+          name: ${{ inputs.artifact-name }}-${{ inputs.build-runner }}-${{ matrix.runtime }}
           path: |
             auspice/
             results/
