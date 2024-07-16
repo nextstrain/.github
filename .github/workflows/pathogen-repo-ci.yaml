@@ -235,6 +235,12 @@ jobs:
       #   -trs, 28 April 2022
       - uses: nextstrain/.github/actions/setup-nextstrain-cli@c1191de9d5e1a30e91d70b0fd1041d97ed1b2496
         with:
+          # FIXME: This is a temporary workaround to allow osx-arm64 for conda runner.
+          # Relies on route similarity between `/cli/download/:version` and `/cli/download/ci-build/::runId`.
+          # PR build would be ideal but PR run currently fails so it is filtered out by the endpoint.
+          # <https://github.com/nextstrain/cli/pull/379>
+          # <https://github.com/nextstrain/nextstrain.org/blob/d823926cab0180625cdeceeb48d4ba087dd6ae43/src/app.js#L138-L140>
+          cli-version: ci-build/9912900972
           runtime: ${{ matrix.runtime }}
 
       - name: Copy example data
