@@ -31,8 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # XXX TODO: change to @master once the actions/setup-ssh branch is merged
-      - uses: nextstrain/.github/actions/setup-ssh@actions/setup-ssh
+      - uses: nextstrain/.github/actions/setup-ssh@master
         with:
           tailscale-auth-key: ${{ inputs.tailscale-auth-key || secrets.TAILSCALE_AUTH_KEY }}
           allowed-users: ${{ inputs.allowed-users || github.triggering_actor }}
