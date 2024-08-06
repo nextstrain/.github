@@ -68,6 +68,9 @@ jobs:
       - run: make ${{ inputs.make-target }}
         working-directory: ${{ inputs.docs-directory }}
 
+      - run: make linkcheck
+        working-directory: ${{ inputs.docs-directory }}
+
   build-pip:
     if: inputs.pip-install-target != ''
     runs-on: ubuntu-latest
@@ -81,4 +84,7 @@ jobs:
       - run: pip list
 
       - run: make ${{ inputs.make-target }}
+        working-directory: ${{ inputs.docs-directory }}
+
+      - run: make linkcheck
         working-directory: ${{ inputs.docs-directory }}
