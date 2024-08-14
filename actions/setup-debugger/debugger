@@ -36,7 +36,9 @@ main() {
 
     while <& "$interceptor" IFS=$'\x1f' read -r pid comm exe; do
         echo -n "process $pid ($comm) exec of $exe "
+        sleep 1
         set-vars
+        echo -n "($argv0 ${args[*]}) "
 
         if should-interact; then
             echo "[intercepted by debugger]" >> /proc/"$pid"/fd/2
