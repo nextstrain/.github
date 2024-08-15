@@ -43,6 +43,7 @@ files-of-interest() {
 files-to-ignore() {
     git ls-files \
         .gitignore \
+        '**/.gitignore' \
         README.md \
         'images/*' \
         actions/setup-ssh/!(*.yaml|README.md) \
