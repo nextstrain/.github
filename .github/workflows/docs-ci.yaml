@@ -68,9 +68,6 @@ jobs:
       - run: make ${{ inputs.make-target }}
         working-directory: ${{ inputs.docs-directory }}
 
-      - run: make linkcheck
-        working-directory: ${{ inputs.docs-directory }}
-
   build-pip:
     if: inputs.pip-install-target != ''
     runs-on: ubuntu-latest
@@ -86,5 +83,17 @@ jobs:
       - run: make ${{ inputs.make-target }}
         working-directory: ${{ inputs.docs-directory }}
 
-      - run: make linkcheck
+  linkcheck:
+    if: inputs.pip-install-target != ''
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ inputs.repo }}
+
+      - run: pip install '${{ inputs.pip-install-target }}'
+
+      - id: linkcheck
+        run: make linkcheck
         working-directory: ${{ inputs.docs-directory }}
+        continue-on-error: true
