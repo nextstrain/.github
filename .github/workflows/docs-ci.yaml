@@ -48,8 +48,7 @@ env:
   SPHINXOPTS: -n -W --keep-going
 
 jobs:
-  build-conda:
-    if: inputs.environment-file != ''
+  build:
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -59,29 +58,19 @@ jobs:
         with:
           repository: ${{ inputs.repo }}
 
-      - uses: conda-incubator/setup-miniconda@v3
+      # Set up environment with Conda
+      - if: inputs.environment-file != ''
+        uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: ${{ inputs.environment-file }}
+      - if: inputs.environment-file != ''
+        run: conda list
 
-      - run: conda list
-
-      - run: make ${{ inputs.make-target }}
-        working-directory: ${{ inputs.docs-directory }}
-
-      - run: make linkcheck
-        working-directory: ${{ inputs.docs-directory }}
-
-  build-pip:
-    if: inputs.pip-install-target != ''
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ inputs.repo }}
-
-      - run: pip install '${{ inputs.pip-install-target }}'
-
-      - run: pip list
+      # Set up environment with pip
+      - if: inputs.pip-install-target != ''
+        run: pip install '${{ inputs.pip-install-target }}'
+      - if: inputs.pip-install-target != ''
+        run: pip list
 
       - run: make ${{ inputs.make-target }}
         working-directory: ${{ inputs.docs-directory }}
