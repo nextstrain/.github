@@ -46,6 +46,7 @@ env:
   # --keep-going: find all warnings
   # https://www.sphinx-doc.org/en/master/man/sphinx-build.html
   SPHINXOPTS: -n -W --keep-going
+  BUILDDIR: _build
 
 jobs:
   build:
@@ -75,5 +76,16 @@ jobs:
       - run: make ${{ inputs.make-target }}
         working-directory: ${{ inputs.docs-directory }}
 
-      - run: make linkcheck
+      # Ignore the exit code, results will be checked in the next step
+      - run: make linkcheck || true
+        working-directory: ${{ inputs.docs-directory }}
+
+      - name: Check for broken links
+        run: |
+          broken_links=$(jq 'select(.status == "broken")' "$BUILDDIR/linkcheck/output.json")
+          if [ -n "$broken_links" ]; then
+            echo "Broken links found:"
+            echo "$broken_links"
+            exit 1
+          fi
         working-directory: ${{ inputs.docs-directory }}
