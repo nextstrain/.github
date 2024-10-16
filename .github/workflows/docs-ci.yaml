@@ -55,6 +55,17 @@ jobs:
       run:
         shell: bash -l {0}
     steps:
+      - name: Check inputs
+        if: (inputs.environment-file == '' && inputs.pip-install-target == '') ||
+            (inputs.environment-file != '' && inputs.pip-install-target != '')
+        run: |
+          cat <<~~
+          This workflow requires one (and only one) of the following inputs:
+          - environment-file
+          - pip-install-target
+          ~~
+          exit 1
+
       - uses: actions/checkout@v4
         with:
           repository: ${{ inputs.repo }}
