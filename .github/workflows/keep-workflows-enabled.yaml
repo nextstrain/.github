@@ -1,0 +1,58 @@
+# This workflow is intended to keep scheduled GH Action workflows enabled
+# as a work-around for scheduled workflows being automatically disabled when
+# no repository activity has occurred in 60 days.
+name: Keep workflows enabled
+
+on:
+  schedule:
+    # Scheduled to run at 4pm UTC (8am PST) on the first day of the month
+    - cron: '0 16 1 * *'
+
+  workflow_dispatch:
+
+jobs:
+  enable-workflow:
+    permissions:
+      actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    name: enable-workflow (${{ matrix.repo }}/${{ matrix.workflow }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { repo: .github,         workflow: keep-workflows-enabled.yaml }
+          - { repo: augur,           workflow: ci.yaml }
+          - { repo: avian-flu,       workflow: ingest-to-phylogenetic-ncbi.yaml }
+          - { repo: cli,             workflow: ci.yaml }
+          - { repo: cli,             workflow: standalone-installers.yaml }
+          - { repo: conda-base,      workflow: installation.yaml }
+          - { repo: dengue,          workflow: ingest-to-phylogenetic.yaml }
+          - { repo: forecasts-ncov,  workflow: update-ncov-case-counts.yaml }
+          - { repo: lassa,           workflow: ci.yaml }
+          - { repo: lassa,           workflow: ingest-to-phylogenetic.yaml }
+          - { repo: measles,         workflow: ingest-to-phylogenetic.yaml }
+          - { repo: mpox,            workflow: fetch-and-ingest.yaml }
+          - { repo: ncov,            workflow: rebuild-100k.yml }
+          - { repo: ncov-ingest,     workflow: fetch-and-ingest-genbank-master.yml }
+          - { repo: ncov-ingest,     workflow: fetch-and-ingest-gisaid-master.yml }
+          - { repo: nextstrain.org,  workflow: index-resources.yml }
+          - { repo: nextstrain.org,  workflow: remind-to-promote.yml }
+          - { repo: nipah,           workflow: ingest-to-phylogenetic.yaml }
+          - { repo: oropouche,       workflow: ingest-to-phylogenetic.yaml }
+          - { repo: rabies,          workflow: ingest-to-phylogenetic.yaml }
+          - { repo: rsv,             workflow: fetch-and-ingest.yaml }
+          - { repo: rsv,             workflow: rebuild.yaml }
+          - { repo: seasonal-cov,    workflow: ingest-to-phylogenetic.yaml }
+          - { repo: status,          workflow: ci.yaml }
+          - { repo: WNV,             workflow: ingest-to-phylogenetic.yaml }
+          - { repo: zika,            workflow: ingest-to-phylogenetic.yaml }
+
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          gh api \
+          --method PUT \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/nextstrain/${{matrix.repo}}/actions/workflows/${{matrix.workflow}}/enable
