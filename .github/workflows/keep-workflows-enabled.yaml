@@ -16,7 +16,7 @@ jobs:
       actions: write
     env:
       GH_TOKEN: ${{ secrets.GH_TOKEN_NEXTSTRAIN_BOT_WORKFLOW_DISPATCH }}
-    name: enable-workflow (${{ matrix.repo }}/${{ matrix.workflow }})
+    name: "${{ matrix.repo }}:${{ matrix.workflow }}"
     strategy:
       fail-fast: false
       matrix:
