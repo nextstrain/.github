@@ -46,6 +46,7 @@ jobs:
           - { repo: seasonal-cov,    workflow: ingest-to-phylogenetic.yaml }
           - { repo: status,          workflow: ci.yaml }
           - { repo: WNV,             workflow: ingest-to-phylogenetic.yaml }
+          - { repo: yellow-fever,    workflow: ingest-to-phylogenetic.yaml }
           - { repo: zika,            workflow: ingest-to-phylogenetic.yaml }
 
     runs-on: ubuntu-latest
