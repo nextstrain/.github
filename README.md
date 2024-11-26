@@ -99,6 +99,8 @@ See also GitHub's [documentation on starter workflows](https://docs.github.com/e
 
 - CI tests for the actions and reusable workflows above
   ([workflow](.github/workflows/ci.yaml))
+- Central workflow to keep all scheduled GH Action workflows enabled
+  ([workflow](.github/workflows/keep-workflows-enabled.yaml))
 
 
 ## Workflow scripts
