@@ -1,0 +1,87 @@
+# This workflow is intended to be called by workflows in our various software
+# repos to have shared workflow failure reporting in the form of GitHub issues.
+on:
+  workflow_call:
+    inputs:
+      failure:
+        description: Whether to create an issue indicating a failed workflow run, or keep an existing issue open.
+        type: boolean
+        required: true
+      success:
+        description: Whether to close any open issues created by this workflow.
+        type: boolean
+        required: true
+      title:
+        description: Title for issues opened by this workflow.
+        type: string
+        required: true
+    secrets:
+      token:
+        description: A GitHub access token with permission to create and modify GitHub issues.
+        required: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract workflow link
+        run: |
+          workflow_path=$(echo "${{ github.workflow_ref }}" | sed -E 's|^.*/(\.github/workflows/[^@]+)@\S*$|\1|')
+          echo "workflow_link=https://github.com/${{ github.repository }}/blob/${{ github.sha }}/$workflow_path" >> "$GITHUB_ENV"
+
+      - name: Create or close issue
+        run: |
+          # Search for issues opened by this job.
+          matching_issues=$(gh issue list \
+            --state open \
+            --author '@me' \
+            --json 'number,title' \
+            --jq 'map(select(.title == "${{ inputs.title }}") | .number)')
+
+          # Handle the case of multiple matching issues, even though this
+          # shouldn't happen under normal circumstances.
+          if [[ $(jq length <<<"$matching_issues") -gt 1 ]]; then
+            echo "ERROR: Multiple matching issues found:" >&2
+            for issue in $(jq -r '.[]' <<<"$matching_issues"); do
+                echo "- https://github.com/${{ github.repository }}/issues/$issue" >&2
+            done
+            echo "This must be handled manually." >&2
+            exit 1
+          fi
+
+          existing_issue=$(jq -r '.[0] | values' <<<"$matching_issues")
+
+          # shellcheck disable=SC2050
+          if [[ "${{ inputs.failure }}" == "true" ]]; then
+            if  [[ -z "$existing_issue" ]]; then
+              echo "New failure detected. Creating issue..."
+              new_issue=$(gh issue create \
+                --title "${{ inputs.title }}" \
+                --body "$body")
+              echo "Created issue: $new_issue"
+            else
+              echo "Open issue already exists: https://github.com/${{ github.repository }}/issues/$existing_issue"
+            fi
+          fi
+
+          # shellcheck disable=SC2050
+          if [[ "${{ inputs.success }}" == "true" ]]; then
+            if [[ -n "$existing_issue" ]]; then
+              echo "Closing issue https://github.com/${{ github.repository }}/issues/$existing_issue"
+              gh issue close "$existing_issue" \
+                --comment "Workflow is successful as of https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            else
+              echo "No open issue to be closed."
+            fi
+          fi
+
+        env:
+          body: |
+            Automatically created by the workflow [${{ github.workflow }}](${{ env.workflow_link }}) which indicated failure on [run ${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}).
+
+            See the workflow run for details and make changes as necessary.
+
+            This issue will be automatically closed upon the next successful run of the workflow.
+          GITHUB_TOKEN: ${{ secrets.token }}
