@@ -12,12 +12,20 @@ on:
         type: boolean
         required: true
       title:
-        description: Title for issues opened by this workflow.
+        description: >
+          Title for issues opened by this workflow. Issues with this title in
+          this repo are expected to be managed by this workflow. Having two
+          issues with this title open at the same time will cause the workflow
+          to error.
         type: string
         required: true
     secrets:
       token:
-        description: A GitHub access token with permission to create and modify GitHub issues.
+        description: >
+          A GitHub access token with permission to create and modify GitHub issues.
+          Issues are matched based on the account associated with this token.
+          If this is changed while there is an open issue managed by this
+          workflow, you may have to manually close that issue.
         required: true
 
 jobs:
@@ -34,9 +42,14 @@ jobs:
       - name: Create or close issue
         run: |
           # Search for issues opened by this job.
+          # Note: Ideally, --search would support exact title matching, but
+          # that's not possible at the moment. A label might be more optimal,
+          # but casting a wide-ish net and title matching with jq should
+          # suffice.
           matching_issues=$(gh issue list \
             --state open \
             --author '@me' \
+            --limit 30 \
             --json 'number,title' \
             --jq 'map(select(.title == "${{ inputs.title }}") | .number)')
 
