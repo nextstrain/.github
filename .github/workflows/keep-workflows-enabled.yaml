@@ -29,6 +29,7 @@ jobs:
           - { repo: conda-base,      workflow: installation.yaml }
           - { repo: dengue,          workflow: ingest-to-phylogenetic.yaml }
           - { repo: forecasts-ncov,  workflow: update-ncov-case-counts.yaml }
+          - { repo: hmpv,            workflow: pathogen-repo-build.yml }
           - { repo: lassa,           workflow: ci.yaml }
           - { repo: lassa,           workflow: ingest-to-phylogenetic.yaml }
           - { repo: measles,         workflow: ingest-to-phylogenetic.yaml }
