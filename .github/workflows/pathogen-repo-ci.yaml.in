@@ -114,7 +114,7 @@ env:
 
 jobs:
   configuration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - id: inputs
         env:
@@ -127,7 +127,7 @@ jobs:
       runtimes: ${{ steps.inputs.outputs.runtimes }}
 
   workflow-context:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - id: workflow-context
         uses: nextstrain/.github/actions/workflow-context@master
@@ -142,7 +142,7 @@ jobs:
       matrix:
         runtime: ${{ fromJSON(needs.configuration.outputs.runtimes) }}
     name: build (${{ matrix.runtime }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     continue-on-error: ${{ inputs.continue-on-error }}
     steps:
       # Log in, if possible, to docker.io (Docker Hub), since authenticated

@@ -50,7 +50,7 @@ jobs:
           - { repo: yellow-fever,    workflow: ingest-to-phylogenetic.yaml }
           - { repo: zika,            workflow: ingest-to-phylogenetic.yaml }
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - run: |
           gh api \

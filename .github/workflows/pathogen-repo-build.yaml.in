@@ -195,7 +195,7 @@ permissions:
 
 jobs:
   workflow-context:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - id: workflow-context
         uses: nextstrain/.github/actions/workflow-context@master
@@ -205,7 +205,7 @@ jobs:
 
   run-build:
     needs: workflow-context
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout build repository
         uses: actions/checkout@v4
@@ -354,7 +354,7 @@ jobs:
   wait-1: &wait
     needs: [run-build, workflow-context]
     if: needs.run-build.outputs.AWS_BATCH_JOB_ID
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 360
     steps:
       # Uses needs.workflow-context.outputs
@@ -419,7 +419,7 @@ jobs:
   wait-conclusion:
     needs: [wait-1, wait-2, wait-3, wait-4]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: All attach steps in wait-N jobs were successful (or skipped)
         run: |
@@ -440,7 +440,7 @@ jobs:
   cancellation:
     needs: [wait-4, run-build, workflow-context]
     if: cancelled()
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       # Uses needs.workflow-context.outputs
       - *checkout-workflow-support
