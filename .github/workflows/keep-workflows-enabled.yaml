@@ -34,6 +34,7 @@ jobs:
           - { repo: lassa,           workflow: ingest-to-phylogenetic.yaml }
           - { repo: measles,         workflow: ingest-to-phylogenetic.yaml }
           - { repo: mpox,            workflow: fetch-and-ingest.yaml }
+          - { repo: mumps,           workflow: ingest.yaml }
           - { repo: ncov,            workflow: rebuild-100k.yml }
           - { repo: ncov-ingest,     workflow: fetch-and-ingest-genbank-master.yml }
           - { repo: ncov-ingest,     workflow: fetch-and-ingest-gisaid-master.yml }
