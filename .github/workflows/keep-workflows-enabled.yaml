@@ -29,7 +29,7 @@ jobs:
           - { repo: conda-base,      workflow: installation.yaml }
           - { repo: dengue,          workflow: ingest-to-phylogenetic.yaml }
           - { repo: forecasts-ncov,  workflow: update-ncov-case-counts.yaml }
-          - { repo: hmpv,            workflow: pathogen-repo-build.yml }
+          - { repo: hmpv,            workflow: ingest.yaml }
           - { repo: lassa,           workflow: ci.yaml }
           - { repo: lassa,           workflow: ingest-to-phylogenetic.yaml }
           - { repo: measles,         workflow: ingest-to-phylogenetic.yaml }
@@ -40,8 +40,8 @@ jobs:
           - { repo: ncov-ingest,     workflow: fetch-and-ingest-gisaid-master.yml }
           - { repo: nextstrain.org,  workflow: index-resources.yml }
           - { repo: nextstrain.org,  workflow: remind-to-promote.yml }
-          - { repo: nipah,           workflow: ingest-to-phylogenetic.yaml }
-          - { repo: oropouche,       workflow: ingest-to-phylogenetic.yaml }
+          - { repo: nipah,           workflow: ingest.yaml }
+          - { repo: oropouche,       workflow: ingest.yaml }
           - { repo: rabies,          workflow: ingest-to-phylogenetic.yaml }
           - { repo: rsv,             workflow: fetch-and-ingest.yaml }
           - { repo: rsv,             workflow: rebuild.yaml }
