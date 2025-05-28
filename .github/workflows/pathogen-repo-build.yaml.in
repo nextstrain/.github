@@ -346,16 +346,19 @@ jobs:
     outputs:
       AWS_BATCH_JOB_ID: ${{ env.AWS_BATCH_JOB_ID }}
 
-  # Wait for up to 6 hours (the maximum GitHub Actions job timeout¹) for the
-  # AWS Batch job to finish.
+  # Wait for up to 359 minutes for the AWS Batch job to finish.
+  # Set timeout to 359 minutes to be less than the maximum GitHub Actions job
+  # timeout of 6 hours¹ so that job is cancelled by our own limit instead of
+  # GitHub's limit.²
   #
   # ¹ <https://docs.github.com/en/actions/learn-github-actions/usage-limits-billing-and-administration#usage-limits>
   #   <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idtimeout-minutes>
+  # ² <https://github.com/nextstrain/.github/issues/129>
   wait-1: &wait
     needs: [run-build, workflow-context]
     if: needs.run-build.outputs.AWS_BATCH_JOB_ID
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 359
     steps:
       # Uses needs.workflow-context.outputs
       - *checkout-workflow-support
