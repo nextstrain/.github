@@ -346,19 +346,16 @@ jobs:
     outputs:
       AWS_BATCH_JOB_ID: ${{ env.AWS_BATCH_JOB_ID }}
 
-  # Wait for up to 359 minutes for the AWS Batch job to finish.
-  # Set timeout to 359 minutes to be less than the maximum GitHub Actions job
-  # timeout of 6 hours¹ so that job is cancelled by our own limit instead of
-  # GitHub's limit.²
+  # Wait for up to 6 hours (the maximum GitHub Actions job timeout¹) for the
+  # AWS Batch job to finish.
   #
   # ¹ <https://docs.github.com/en/actions/learn-github-actions/usage-limits-billing-and-administration#usage-limits>
   #   <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idtimeout-minutes>
-  # ² <https://github.com/nextstrain/.github/issues/129>
   wait-1: &wait
     needs: [run-build, workflow-context]
     if: needs.run-build.outputs.AWS_BATCH_JOB_ID
     runs-on: ubuntu-latest
-    timeout-minutes: 359
+    timeout-minutes: 360
     steps:
       # Uses needs.workflow-context.outputs
       - *checkout-workflow-support
@@ -383,16 +380,9 @@ jobs:
             --detach-on-interrupt \
             --no-download
 
-    # Allow the workflow to be considered successful even if this job errors
-    # due to cancellation (timing out).  Unfortunately, this doesn't
-    # distinguish between error from cancellation and error from command
-    # failure, so we work around that below.
-    continue-on-error: true
-
     # Emit a "conclusion" output for the job that's based on the built-in
     # conclusion (success, failure, cancelled) of the "attach" step above.
-    # This is the conclusion we care about for the job since the job's own
-    # "conclusion" is masked/transformed by "continue-on-error: true" above.
+    # This is the conclusion we care about for the job.
     outputs:
       attach-step-conclusion: ${{ steps.attach.conclusion }}
 
@@ -401,24 +391,24 @@ jobs:
   wait-2:
     <<: *wait
     needs: [wait-1, run-build, workflow-context]
-    if: needs.wait-1.outputs.attach-step-conclusion == 'cancelled'
+    if: ${{ !cancelled() && !failure() && needs.wait-1.outputs.attach-step-conclusion == 'cancelled' }}
 
   # 12–18 hours
   wait-3:
     <<: *wait
     needs: [wait-2, run-build, workflow-context]
-    if: needs.wait-2.outputs.attach-step-conclusion == 'cancelled'
+    if: ${{ !cancelled() && !failure() && needs.wait-2.outputs.attach-step-conclusion == 'cancelled' }}
 
   # 18–24 hours
   wait-4:
     <<: *wait
     needs: [wait-3, run-build, workflow-context]
-    if: needs.wait-3.outputs.attach-step-conclusion == 'cancelled'
+    if: ${{ !cancelled() && !failure() && needs.wait-3.outputs.attach-step-conclusion == 'cancelled' }}
 
-  # Since the wait-N jobs use "continue-on-error: true" out of necessity (to
-  # avoid failing the whole workflow when they time out and get cancelled), we
-  # use a final job here to succeed or fail the whole workflow based on the
-  # aggregate of their "attach" step conclusions.
+  # Unfortunately, the overall workflow status will still be "cancelled" if
+  # any of the `wait-N` jobs were cancelled due to timeout. Use a final job here
+  # to track if the whole workflow succeeded based on the aggregate of their
+  # "attach" step conclusions so we can potentially query the final status via the GitHu API
   wait-conclusion:
     needs: [wait-1, wait-2, wait-3, wait-4]
     if: always()
