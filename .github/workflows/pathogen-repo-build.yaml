@@ -583,7 +583,7 @@ jobs:
   # Unfortunately, the overall workflow status will still be "cancelled" if
   # any of the `wait-N` jobs were cancelled due to timeout. Use a final job here
   # to track if the whole workflow succeeded based on the aggregate of their
-  # "attach" step conclusions so we can potentially query the final status via the GitHu API
+  # "attach" step conclusions so we can potentially query the final status via the GitHub API
   wait-conclusion:
     needs: [wait-1, wait-2, wait-3, wait-4]
     if: always()
