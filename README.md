@@ -58,6 +58,9 @@ Invoked by other repos.
   ([workflow source](.github/workflows/pathogen-repo-build.yaml.in),
    [workflow compiled](.github/workflows/pathogen-repo-build.yaml))
 
+- Report failures
+  ([workflow](.github/workflows/report-failure.yaml))
+
 See also GitHub's [documentation on reusing workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows).
 
 
