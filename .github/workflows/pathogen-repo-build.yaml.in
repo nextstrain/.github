@@ -367,43 +367,56 @@ jobs:
         env:
           AWS_BATCH_JOB_ID: ${{ needs.run-build.outputs.AWS_BATCH_JOB_ID }}
         run: |
-          # When a running process is to be cancelled (e.g. due to either user
-          # request or job timeout), GitHub Actions sends it SIGINT and waits
-          # 7.5s for it to exit.¹  We immediately detach on interrupt, letting
-          # the next wait-N job in our chain pick it back up (if this job timed
-          # out) or the cancellation job (if by user request).
-          #
-          # ¹ <https://docs.github.com/en/actions/managing-workflow-runs/canceling-a-workflow#steps-github-takes-to-cancel-a-workflow-run>
-          exec nextstrain build \
+          # Using timeout to detach from build before we hit the job.timeout-minutes
+          # to avoid cancelling the job in order to avoid a "Cancelled" status
+          # for the whole workflow.
+          # <https://github.com/nextstrain/.github/issues/129#issuecomment-2956350306>
+          exit_status=0
+          timeout 359m nextstrain build \
             --aws-batch \
             --attach "$AWS_BATCH_JOB_ID" \
             --detach-on-interrupt \
-            --no-download
+            --no-download || exit_status=$?
 
-    # Emit a "conclusion" output for the job that's based on the built-in
-    # conclusion (success, failure, cancelled) of the "attach" step above.
+          if [[ $exit_status == 0 ]]; then
+            conclusion="success"
+          elif [[ $exit_status == 124 ]]; then
+            # 124 is the exit code for timed out commands
+            # Mask the exit code so that the job concludes successfully
+            # and we can continue the next wait-N job.
+            exit_status=0
+            conclusion="timeout"
+          else
+            conclusion="failure"
+          fi
+
+          echo "conclusion=$conclusion" | tee -a "$GITHUB_OUTPUT"
+          exit $exit_status
+
+    # Emit a "conclusion" output for the job that's based on the conclusion
+    # (success, timeout, failure) of the "attach" step above.
     # This is the conclusion we care about for the job.
     outputs:
-      attach-step-conclusion: ${{ steps.attach.conclusion }}
+      attach-step-conclusion: ${{ steps.attach.outputs.conclusion }}
 
   # Wait for up to another 6 hours (hours 6–12) if the preceding wait-N job
   # timed out while attached to the AWS Batch job.
   wait-2:
     <<: *wait
     needs: [wait-1, run-build, workflow-context]
-    if: ${{ !cancelled() && !failure() && needs.wait-1.outputs.attach-step-conclusion == 'cancelled' }}
+    if: ${{ needs.wait-1.outputs.attach-step-conclusion == 'timeout' }}
 
   # 12–18 hours
   wait-3:
     <<: *wait
     needs: [wait-2, run-build, workflow-context]
-    if: ${{ !cancelled() && !failure() && needs.wait-2.outputs.attach-step-conclusion == 'cancelled' }}
+    if: ${{ needs.wait-2.outputs.attach-step-conclusion == 'timeout' }}
 
   # 18–24 hours
   wait-4:
     <<: *wait
     needs: [wait-3, run-build, workflow-context]
-    if: ${{ !cancelled() && !failure() && needs.wait-3.outputs.attach-step-conclusion == 'cancelled' }}
+    if: ${{ needs.wait-3.outputs.attach-step-conclusion == 'timeout' }}
 
   # Unfortunately, the overall workflow status will still be "cancelled" if
   # any of the `wait-N` jobs were cancelled due to timeout. Use a final job here
