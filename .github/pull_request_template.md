@@ -24,6 +24,6 @@ Please add a note if you need help with adding tests.
 -->
 
 - [ ] Checks pass
-- [ ] Update CHANGELOG
+- [ ] Update changelog
 
 <!-- 🙌 Thank you for contributing to Nextstrain! ✨ -->
