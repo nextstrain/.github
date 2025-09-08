@@ -405,14 +405,17 @@ jobs:
         run: |
           # Using timeout to detach from build before we hit the job.timeout-minutes
           # to avoid cancelling the job in order to avoid a "Cancelled" status
-          # for the whole workflow.
-          # <https://github.com/nextstrain/.github/issues/129#issuecomment-2956350306>
+          # for the whole workflow.¹ Using SIGINT to ensure that the GH Action
+          # cleanly detaches from the build without cancelling it.²
+          # ¹ <https://github.com/nextstrain/.github/issues/129#issuecomment-2956350306>
+          # ² <https://github.com/nextstrain/.github/pull/134#discussion_r2325804695>
           exit_status=0
-          timeout 359m nextstrain build \
-            --aws-batch \
-            --attach "$AWS_BATCH_JOB_ID" \
-            --detach-on-interrupt \
-            --no-download || exit_status=$?
+          timeout --signal INT 359m \
+            nextstrain build \
+              --aws-batch \
+              --attach "$AWS_BATCH_JOB_ID" \
+              --detach-on-interrupt \
+              --no-download || exit_status=$?
 
           if [[ $exit_status == 0 ]]; then
             conclusion="success"
@@ -470,14 +473,17 @@ jobs:
         run: |
           # Using timeout to detach from build before we hit the job.timeout-minutes
           # to avoid cancelling the job in order to avoid a "Cancelled" status
-          # for the whole workflow.
-          # <https://github.com/nextstrain/.github/issues/129#issuecomment-2956350306>
+          # for the whole workflow.¹ Using SIGINT to ensure that the GH Action
+          # cleanly detaches from the build without cancelling it.²
+          # ¹ <https://github.com/nextstrain/.github/issues/129#issuecomment-2956350306>
+          # ² <https://github.com/nextstrain/.github/pull/134#discussion_r2325804695>
           exit_status=0
-          timeout 359m nextstrain build \
-            --aws-batch \
-            --attach "$AWS_BATCH_JOB_ID" \
-            --detach-on-interrupt \
-            --no-download || exit_status=$?
+          timeout --signal INT 359m \
+            nextstrain build \
+              --aws-batch \
+              --attach "$AWS_BATCH_JOB_ID" \
+              --detach-on-interrupt \
+              --no-download || exit_status=$?
 
           if [[ $exit_status == 0 ]]; then
             conclusion="success"
@@ -536,14 +542,17 @@ jobs:
         run: |
           # Using timeout to detach from build before we hit the job.timeout-minutes
           # to avoid cancelling the job in order to avoid a "Cancelled" status
-          # for the whole workflow.
-          # <https://github.com/nextstrain/.github/issues/129#issuecomment-2956350306>
+          # for the whole workflow.¹ Using SIGINT to ensure that the GH Action
+          # cleanly detaches from the build without cancelling it.²
+          # ¹ <https://github.com/nextstrain/.github/issues/129#issuecomment-2956350306>
+          # ² <https://github.com/nextstrain/.github/pull/134#discussion_r2325804695>
           exit_status=0
-          timeout 359m nextstrain build \
-            --aws-batch \
-            --attach "$AWS_BATCH_JOB_ID" \
-            --detach-on-interrupt \
-            --no-download || exit_status=$?
+          timeout --signal INT 359m \
+            nextstrain build \
+              --aws-batch \
+              --attach "$AWS_BATCH_JOB_ID" \
+              --detach-on-interrupt \
+              --no-download || exit_status=$?
 
           if [[ $exit_status == 0 ]]; then
             conclusion="success"
@@ -602,14 +611,17 @@ jobs:
         run: |
           # Using timeout to detach from build before we hit the job.timeout-minutes
           # to avoid cancelling the job in order to avoid a "Cancelled" status
-          # for the whole workflow.
-          # <https://github.com/nextstrain/.github/issues/129#issuecomment-2956350306>
+          # for the whole workflow.¹ Using SIGINT to ensure that the GH Action
+          # cleanly detaches from the build without cancelling it.²
+          # ¹ <https://github.com/nextstrain/.github/issues/129#issuecomment-2956350306>
+          # ² <https://github.com/nextstrain/.github/pull/134#discussion_r2325804695>
           exit_status=0
-          timeout 359m nextstrain build \
-            --aws-batch \
-            --attach "$AWS_BATCH_JOB_ID" \
-            --detach-on-interrupt \
-            --no-download || exit_status=$?
+          timeout --signal INT 359m \
+            nextstrain build \
+              --aws-batch \
+              --attach "$AWS_BATCH_JOB_ID" \
+              --detach-on-interrupt \
+              --no-download || exit_status=$?
 
           if [[ $exit_status == 0 ]]; then
             conclusion="success"
