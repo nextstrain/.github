@@ -283,7 +283,7 @@ jobs:
         run: |
           echo "arn=arn:aws:iam::827581582529:role/GitHubActionsRoleNextstrainRepo@${REPO_FULL_NAME#*/}" | tee -a "$GITHUB_OUTPUT"
       - name: Configure credentials for runtime access to AWS
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -306,7 +306,7 @@ jobs:
         # outdenting comments to not repeat it with expanded YAML
       - if: inputs.runtime == 'aws-batch'
         name: Configure credentials for GitHub Actions job access to AWS Batch
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -386,7 +386,7 @@ jobs:
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
       - if: inputs.runtime == 'aws-batch'
         name: Configure credentials for GitHub Actions job access to AWS Batch
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -454,7 +454,7 @@ jobs:
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
       - if: inputs.runtime == 'aws-batch'
         name: Configure credentials for GitHub Actions job access to AWS Batch
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -523,7 +523,7 @@ jobs:
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
       - if: inputs.runtime == 'aws-batch'
         name: Configure credentials for GitHub Actions job access to AWS Batch
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -592,7 +592,7 @@ jobs:
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
       - if: inputs.runtime == 'aws-batch'
         name: Configure credentials for GitHub Actions job access to AWS Batch
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -671,7 +671,7 @@ jobs:
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
       - if: inputs.runtime == 'aws-batch'
         name: Configure credentials for GitHub Actions job access to AWS Batch
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
