@@ -208,7 +208,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout build repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ inputs.repo }}
 
@@ -217,7 +217,7 @@ jobs:
       # that we need from nextstrain/.github repo
       - &checkout-workflow-support
         name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ needs.workflow-context.outputs.repository }}
           ref: ${{ needs.workflow-context.outputs.sha }}
