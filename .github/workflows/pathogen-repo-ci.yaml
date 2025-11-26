@@ -256,7 +256,7 @@ jobs:
           ' | tee -a "$GITHUB_ENV"
 
       - name: Checkout ${{ inputs.repo }}
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: ${{ inputs.repo }}
           ref: ${{ inputs.ref }}
@@ -264,7 +264,7 @@ jobs:
       # build repo does not overwrite the .git dir and remove the extra support files
       # that we need from nextstrain/.github repo
       - name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: ${{ needs.workflow-context.outputs.repository }}
           ref: ${{ needs.workflow-context.outputs.sha }}
