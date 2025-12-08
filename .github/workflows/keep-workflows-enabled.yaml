@@ -24,10 +24,12 @@ jobs:
           - { repo: .github,         workflow: keep-workflows-enabled.yaml }
           - { repo: augur,           workflow: ci.yaml }
           - { repo: avian-flu,       workflow: ingest-to-phylogenetic-ncbi.yaml }
+          - { repo: chikv,           workflow: fetch-and-ingest.yaml }
           - { repo: cli,             workflow: ci.yaml }
           - { repo: cli,             workflow: standalone-installers.yaml }
           - { repo: conda-base,      workflow: installation.yaml }
           - { repo: dengue,          workflow: ingest-to-phylogenetic.yaml }
+          - { repo: ebola,           workflow: ci.yaml }
           - { repo: forecasts-ncov,  workflow: run-usa-models.yaml }
           - { repo: forecasts-ncov,  workflow: update-ncov-case-counts.yaml }
           - { repo: hmpv,            workflow: ingest.yaml }
@@ -38,7 +40,6 @@ jobs:
           - { repo: mumps,           workflow: ingest.yaml }
           - { repo: ncov,            workflow: rebuild-100k.yml }
           - { repo: ncov-ingest,     workflow: fetch-and-ingest-genbank-master.yml }
-          - { repo: ncov-ingest,     workflow: fetch-and-ingest-gisaid-master.yml }
           - { repo: nextclade_data,  workflow: update-sars-cov-2-datasets.yml }
           - { repo: nextstrain.org,  workflow: index-resources.yml }
           - { repo: nextstrain.org,  workflow: remind-to-promote.yml }
@@ -53,6 +54,7 @@ jobs:
           - { repo: seasonal-cov,    workflow: ingest.yaml }
           - { repo: seasonal-flu,    workflow: run-private-nextflu-builds.yaml }
           - { repo: status,          workflow: ci.yaml }
+          - { repo: tb,              workflow: ingest-to-phylogenetic.yaml }
           - { repo: WNV,             workflow: ci.yaml }
           - { repo: WNV,             workflow: ingest-to-phylogenetic.yaml }
           - { repo: yellow-fever,    workflow: ingest.yaml }
