@@ -1,6 +1,9 @@
-# This workflow is intended to keep scheduled GH Action workflows enabled
-# as a work-around for scheduled workflows being automatically disabled when
-# no repository activity has occurred in 60 days.
+# This workflow regularly disables and re-enables scheduled GH Action workflows.
+# Reasons:
+# 1. Ensures that email notifications for scheduled runs are configurable by the
+#    team under nextstrain-bot's account settings.
+# 2. Prevents workflows from being automatically disabled when no repository
+#    activity has occurred in 60 days.
 name: Keep workflows enabled
 
 on:
@@ -62,7 +65,16 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-      - run: |
+      - name: Disable workflow
+        run: |
+          gh api \
+          --method PUT \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          /repos/nextstrain/${{matrix.repo}}/actions/workflows/${{matrix.workflow}}/disable
+
+      - name: Enable workflow
+        run: |
           gh api \
           --method PUT \
           -H "Accept: application/vnd.github+json" \
