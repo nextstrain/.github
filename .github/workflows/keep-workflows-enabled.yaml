@@ -73,6 +73,9 @@ jobs:
           -H "X-GitHub-Api-Version: 2022-11-28" \
           /repos/nextstrain/${{matrix.repo}}/actions/workflows/${{matrix.workflow}}/disable
 
+      - name: Sleep
+        run: sleep 1
+
       - name: Enable workflow
         run: |
           gh api \
