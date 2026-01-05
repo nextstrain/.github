@@ -330,7 +330,7 @@ jobs:
           > "$GITHUB_STEP_SUMMARY"
 
       - if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           if-no-files-found: warn
           name: ${{ inputs.artifact-name }}
