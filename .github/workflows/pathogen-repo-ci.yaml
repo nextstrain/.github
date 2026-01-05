@@ -1,9 +1,8 @@
-# DO NOT EDIT - GENERATED
-
 # This workflow is intended to be called by workflows in our various pathogen
 # build repos.  See workflow-templates/pathogen-repo-ci.yaml (a "starter"
 # workflow) in this repo for an example of what the caller workflow looks like.
 name: CI
+
 defaults:
   run:
     # This is the same as GitHub Action's `bash` keyword as of 20 June 2023:
@@ -12,23 +11,29 @@ defaults:
     # Completely spelling it out here so that GitHub can't change it out from under us
     # and we don't have to refer to the docs to know the expected behavior.
     shell: bash --noprofile --norc -eo pipefail {0}
+
 on:
   workflow_call:
-    inputs:
+    inputs: &inputs
       repo:
         description: >-
-          Repository name with owner (e.g. nextstrain/zika).  Defaults to the repository of the caller workflow.
+          Repository name with owner (e.g. nextstrain/zika).  Defaults to the
+          repository of the caller workflow.
         type: string
         default: ${{ github.repository }}
         required: false
+
       ref:
         type: string
         default: ""
         required: false
+
       env:
         description: >-
-          Additional environment variables to set before the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
-
+          Additional environment variables to set before the build, as a string
+          containing YAML.  This is easily produced, for example, by pretending
+          you're writing normal nested YAML within a literal multi-line block
+          scalar (introduced by "|"):
 
             with:
               env: |
@@ -39,14 +44,18 @@ on:
                   not
                   yaml
 
-          Do not use for secrets!  Instead, pass them via GitHub Action's dedicated secrets mechanism.
+          Do not use for secrets!  Instead, pass them via GitHub Action's
+          dedicated secrets mechanism.
         type: string
         default: ""
         required: false
+
       runtimes:
         description: >-
-          List of Nextstrain runtimes under which to run the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
-
+          List of Nextstrain runtimes under which to run the build, as a string
+          containing YAML.  This is easily produced, for example, by pretending
+          you're writing normal nested YAML within a literal multi-line block
+          scalar (introduced by "|"):
 
             with:
               runtimes: |
@@ -59,90 +68,50 @@ on:
           - docker
           - conda
         required: false
+
       artifact-name:
         description: >-
-          A base name to use for the uploaded artifacts from the build. This will be concatenated with the runtime name used to invoke the build to generate the full artifact file name.
+          A base name to use for the uploaded artifacts from the
+          build. This will be concatenated with the runtime name
+          used to invoke the build to generate the full artifact file
+          name.
 
           Defaults to `ci-outputs`.
 
-          N.b., you almost certainly don't need to change this, unless you're running multiple invocations of this action in a single workflow. Then you should provide unique values to ensure you can access the artifacts from all the builds you're doing.
+          N.b., you almost certainly don't need to change this, unless
+          you're running multiple invocations of this action in a
+          single workflow. Then you should provide unique values to
+          ensure you can access the artifacts from all the builds
+          you're doing.
         type: string
         default: ci-outputs
         required: false
+
       continue-on-error:
         description: >-
           Pass thru for <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontinue-on-error>.
         type: boolean
         default: false
         required: false
+
   workflow_dispatch:
     inputs:
-      ref:
-        type: string
-        default: ""
-        required: false
-      env:
-        description: >-
-          Additional environment variables to set before the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
-
-
-            with:
-              env: |
-                FOO: bar
-                I_CANT_BELIEVE: "it's not YAML"
-                would_you_believe: |
-                  it's
-                  not
-                  yaml
-
-          Do not use for secrets!  Instead, pass them via GitHub Action's dedicated secrets mechanism.
-        type: string
-        default: ""
-        required: false
-      runtimes:
-        description: >-
-          List of Nextstrain runtimes under which to run the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
-
-
-            with:
-              runtimes: |
-                - docker
-                - conda
-
-          Defaults to "docker" and "conda".  One job per runtime will be run.
-        type: string
-        default: |
-          - docker
-          - conda
-        required: false
-      artifact-name:
-        description: >-
-          A base name to use for the uploaded artifacts from the build. This will be concatenated with the runtime name used to invoke the build to generate the full artifact file name.
-
-          Defaults to `ci-outputs`.
-
-          N.b., you almost certainly don't need to change this, unless you're running multiple invocations of this action in a single workflow. Then you should provide unique values to ensure you can access the artifacts from all the builds you're doing.
-        type: string
-        default: ci-outputs
-        required: false
-      continue-on-error:
-        description: >-
-          Pass thru for <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontinue-on-error>.
-        type: boolean
-        default: false
-        required: false
+      <<: *inputs
       repo:
         description: >-
           Repository name with owner (e.g. nextstrain/zika).
         type: string
         default: ""
         required: true
+
 permissions:
   contents: read
   id-token: write
   packages: read
+
 env:
   NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
+
 jobs:
   configuration:
     runs-on: ubuntu-latest
@@ -156,6 +125,7 @@ jobs:
           echo runtimes="$runtimes" | tee -a "$GITHUB_OUTPUT"
     outputs:
       runtimes: ${{ steps.inputs.outputs.runtimes }}
+
   workflow-context:
     runs-on: ubuntu-latest
     steps:
@@ -164,6 +134,7 @@ jobs:
     outputs:
       repository: ${{ steps.workflow-context.outputs.repository }}
       sha: ${{ steps.workflow-context.outputs.sha }}
+
   nextstrain-build:
     needs: [configuration, workflow-context]
     strategy:
@@ -193,6 +164,7 @@ jobs:
           username: nextstrainbot
           password: ${{ secrets.DOCKER_TOKEN_PUBLIC_READ_ONLY }}
         continue-on-error: true
+
       # Log in, if possible, to ghcr.io which we use for staging images in
       # nextstrain/docker-base.  The automatic GITHUB_TOKEN is restricted to
       # read-only access by the "permissions:" block above.
@@ -203,6 +175,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
+
       # Transforms the inputs.env *string* containing YAML like this:
       #
       #   FOO: bar
@@ -248,18 +221,21 @@ jobs:
         run: >
           # shellcheck disable=SC2154
 
-          echo "$env" | yq --output-format json . | jq --raw-output '
-
+          echo "$env"
+          | yq --output-format json .
+          | jq --raw-output '
               to_entries
             | map("\(.key)<<__EOF__\n\(.value)\n__EOF__")
             | join("\n")
-          ' | tee -a "$GITHUB_ENV"
+          '
+          | tee -a "$GITHUB_ENV"
 
       - name: Checkout ${{ inputs.repo }}
         uses: actions/checkout@v6
         with:
           repository: ${{ inputs.repo }}
           ref: ${{ inputs.ref }}
+
       # Need to run this after the build repo is cloned so that cloning the
       # build repo does not overwrite the .git dir and remove the extra support files
       # that we need from nextstrain/.github repo
@@ -269,10 +245,10 @@ jobs:
           repository: ${{ needs.workflow-context.outputs.repository }}
           ref: ${{ needs.workflow-context.outputs.sha }}
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
+
       - name: Verify nextstrain-pathogen.yaml file
         run: >
           if [[ ! -f nextstrain-pathogen.yaml ]]; then
-
             echo "To use this workflow, there must be a 'nextstrain-pathogen.yaml' file present in the repository root";
             exit 1;
           fi
@@ -282,18 +258,22 @@ jobs:
         with:
           cli-version: ">=8.3.0"
           runtime: ${{ matrix.runtime }}
+
       - name: Run ingest
         if: hashFiles('ingest/Snakefile') && hashFiles('ingest/build-configs/ci/config.yaml')
         id: ingest
         run: nextstrain build ingest --configfile build-configs/ci/config.yaml
+
       - name: Run phylogenetic
         if: hashFiles('phylogenetic/Snakefile') && hashFiles('phylogenetic/build-configs/ci/config.yaml') && !cancelled()
         id: phylogenetic
         run: nextstrain build phylogenetic --configfile build-configs/ci/config.yaml
+
       - name: Run nextclade
         if: hashFiles('nextclade/Snakefile') && hashFiles('nextclade/build-configs/ci/config.yaml') && !cancelled()
         id: nextclade
         run: nextstrain build nextclade --configfile build-configs/ci/config.yaml
+
       - if: always()
         uses: actions/upload-artifact@v6
         with:
@@ -318,6 +298,7 @@ jobs:
             nextclade/benchmarks/
             nextclade/logs/
             nextclade/results/
+
       - if: always()
         name: Verify a workflow ran
         env:

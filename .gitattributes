@@ -1,5 +1,0 @@
-# This is a large generated file that, while text, it is not useful to
-# routinely show the diff of.  A diff can be forced as needed, e.g. with `git
-# diff --text`.
-/.github/workflows/pathogen-repo-build.yaml -diff
-/.github/workflows/pathogen-repo-ci.yaml -diff
