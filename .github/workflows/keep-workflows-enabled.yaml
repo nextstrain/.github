@@ -74,7 +74,7 @@ jobs:
           /repos/nextstrain/${{matrix.repo}}/actions/workflows/${{matrix.workflow}}/disable
 
       - name: Sleep
-        run: sleep 1
+        run: sleep 5
 
       - name: Enable workflow
         run: |
