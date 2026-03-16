@@ -32,7 +32,7 @@
 # used here to avoid quoting issues in arbitrary env var values:
 # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
 #
-# Modified from the pathogne-repo-ci workflow:
+# Modified from the pathogen-repo-ci workflow:
 # https://github.com/nextstrain/.github/blob/cc6f4385a45bd6ed114ab4840416fd90cc46cd1b/.github/workflows/pathogen-repo-ci.yaml#L145-L196
 #
 set -eou pipefail
