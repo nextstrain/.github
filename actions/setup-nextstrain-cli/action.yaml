@@ -33,6 +33,25 @@ inputs:
     default: ${{ runner.os == 'Linux' && 'docker' || runner.os == 'macOS' && 'conda' || '' }}
     required: false
 
+  env:
+    description: >-
+      Additional environment variables to set before the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
+
+
+        with:
+          env: |
+            FOO: bar
+            I_CANT_BELIEVE: "it's not YAML"
+            would_you_believe: |
+              it's
+              not
+              yaml
+
+      Do not use for secrets!  Instead, pass them via GitHub Action's dedicated secrets mechanism.
+    type: string
+    default: ""
+    required: false
+
   # XXX TODO: Remove this in coordination with existing callers.  Callers must
   # stop specifying it before we remove it here in order to not break.  I've
   # audited all of our internal usages¹ of this action to check that they don't
@@ -75,6 +94,61 @@ runs:
     - run: echo "$DESTINATION" | tee -a "$GITHUB_PATH"
       env:
         DESTINATION: ${{ runner.temp }}/nextstrain-cli
+      shell: bash
+
+    # Transforms the inputs.env *string* containing YAML like this:
+    #
+    #   FOO: bar
+    #   I_CANT_BELIEVE: "it's not YAML"
+    #   would_you_believe: |
+    #     it's
+    #     not
+    #     yaml
+    #
+    # first into the equivalent JSON (with yq) and then into text (with jq)
+    # like this:
+    #
+    #   FOO=<<__EOF__
+    #   bar
+    #   __EOF__
+    #   I_CANT_BELIEVE<<__EOF__
+    #   it's not YAML
+    #   __EOF__
+    #   would_you_believe<<__EOF__
+    #   it's
+    #   not
+    #   yaml
+    #   __EOF__
+    #
+    # which is suitable for appending to the $GITHUB_ENV file in order to set
+    # the environment variables for subsequent steps.
+    #
+    # By doing this slightly-convoluted conversion here, callers can use the
+    # familiar env: block syntax almost without change and avoid paying much
+    # in accidental complexity.  We box it up here and let callers focus on
+    # their essential complexity.
+    #   -trs, 23 May 2022
+    #
+    # See the GitHub docs for more info on this heredoc-like syntax, which is
+    # used here to avoid quoting issues in arbitrary env var values:
+    # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#multiline-strings
+    #
+    # Modified from the pathogen-repo-ci workflow:
+    # https://github.com/nextstrain/.github/blob/cc6f4385a45bd6ed114ab4840416fd90cc46cd1b/.github/workflows/pathogen-repo-ci.yaml#L145-L196
+    #
+    - if: inputs.env
+      name: Set environment variables
+      env:
+        env: ${{ inputs.env }}
+      run: >
+        # shellcheck disable=SC2154
+
+        echo "$env" | yq --output-format json . | jq --raw-output '
+
+            to_entries
+          | map("\(.key)<<__EOF__\n\(.value)\n__EOF__")
+          | join("\n")
+        ' | tee -a "$GITHUB_ENV"
       shell: bash
 
     - run: nextstrain version
