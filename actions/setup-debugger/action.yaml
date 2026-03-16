@@ -24,9 +24,28 @@ runs:
       run: |
         cp -v debugger ~/
 
-    # See .github/workflows/pathogen-repo-ci.yaml for why this is a static SHA
-    # which we update over time.
-    #   -trs, 20 Jan 2023
+      # XXX TODO: It would be better for this to call our action using the same
+      # ref that this workflow was called with (e.g. if this workflow was
+      # invoked by the caller workflow with @foo than we invoke the action with
+      # @foo too), but it's not currently possible to figure out that ref.  See
+      # discussion around this (including results of some investigation I did):
+      #
+      #   - https://github.community/t/reusable-workflows-get-the-ref-inside-the-called-workflow/224109
+      #   - https://github.community/t/ref-head-in-reusable-workflows/203690/92
+      #
+      # Once we can figure out that ref, then we can actions/checkout our
+      # nextstrain/.github repo at that ref as a sidecar path somewhere and then
+      # invoke the action using a local file path instead of a remote owner/repo
+      # path.  This separate checkout will be necessary since the "uses:" key
+      # can't be interpolated (${{…}}) with context vars.
+      #
+      # For now, update the hardcoded ref (e.g. @90af34…) below when you make
+      # future changes to setup-nextstrain-cli.
+      #
+      # [ Update 16 Mar 2026: We solved this for workflows, but it's not
+      #   applicable to shared composite actions. -victorlin ]
+      #
+      #   -trs, 28 April 2022, modified by victorlin 16 March 2026
     - uses: nextstrain/.github/actions/setup-ssh@0bfe8b836f609270c34ed7622960a67fb79cb330
       with:
         tailscale-auth-key: ${{ inputs.tailscale-auth-key }}
