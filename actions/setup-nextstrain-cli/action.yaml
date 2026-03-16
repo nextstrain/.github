@@ -33,6 +33,25 @@ inputs:
     default: ${{ runner.os == 'Linux' && 'docker' || runner.os == 'macOS' && 'conda' || '' }}
     required: false
 
+  env:
+    description: >-
+      Additional environment variables to set before the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
+
+
+        with:
+          env: |
+            FOO: bar
+            I_CANT_BELIEVE: "it's not YAML"
+            would_you_believe: |
+              it's
+              not
+              yaml
+
+      Do not use for secrets!  Instead, pass them via GitHub Action's dedicated secrets mechanism.
+    type: string
+    default: ""
+    required: false
+
   # XXX TODO: Remove this in coordination with existing callers.  Callers must
   # stop specifying it before we remove it here in order to not break.  I've
   # audited all of our internal usages¹ of this action to check that they don't
@@ -76,6 +95,18 @@ runs:
       env:
         DESTINATION: ${{ runner.temp }}/nextstrain-cli
       shell: bash
+
+    - if: inputs.env
+      uses: actions/checkout@v6
+      with:
+        repository: nextstrain/.github
+        ref: ad30331cf17afce12a293759ced21df1fecc83ef
+        path: .git/nextstrain/.github  # FIXME: move to env
+
+    - if: inputs.env
+      uses: ./.git/nextstrain/.github/actions/set-env-from-yaml  # FIXME: check that this works
+      with:
+        env: ${{ inputs.env }}
 
     - run: nextstrain version
       shell: bash
