@@ -243,17 +243,9 @@ jobs:
       #
       - if: inputs.env
         name: Set environment variables
-        env:
+        uses: ./.git/nextstrain/.github/actions/set-env-from-yaml
+        with:
           env: ${{ inputs.env }}
-        run: >
-          # shellcheck disable=SC2154
-
-          echo "$env" | yq --output-format json . | jq --raw-output '
-
-              to_entries
-            | map("\(.key)<<__EOF__\n\(.value)\n__EOF__")
-            | join("\n")
-          ' | tee -a "$GITHUB_ENV"
 
       - name: Checkout ${{ inputs.repo }}
         uses: actions/checkout@v6

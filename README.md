@@ -29,6 +29,7 @@ See also GitHub's [documentation on issue and PR templates](https://docs.github.
 
 Invoked by our GitHub Actions workflows, including the reusable workflows below.
 
+- [Set env from YAML](actions/set-env-from-yaml/action.yaml)
 - [Setup Nextstrain CLI](actions/setup-nextstrain-cli/action.yaml)
 - [shellcheck](actions/shellcheck/action.yaml)
 - [Setup SSH](actions/setup-ssh/action.yaml) access to runner machine
