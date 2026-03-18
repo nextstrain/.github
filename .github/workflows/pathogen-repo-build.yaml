@@ -424,7 +424,10 @@ jobs:
               --aws-batch \
               --attach "$AWS_BATCH_JOB_ID" \
               --detach-on-interrupt \
-              "${download_args[@]}" . || exit_status=$?
+              "${download_args[@]}" . \
+            |& tee .git/"$NEXTSTRAIN_BUILD_LOG" || exit_status=$?
+
+          mv .git/"$NEXTSTRAIN_BUILD_LOG" "$NEXTSTRAIN_BUILD_LOG"
 
           if [[ $exit_status == 0 ]]; then
             conclusion="success"
@@ -511,7 +514,10 @@ jobs:
               --aws-batch \
               --attach "$AWS_BATCH_JOB_ID" \
               --detach-on-interrupt \
-              "${download_args[@]}" . || exit_status=$?
+              "${download_args[@]}" . \
+            |& tee .git/"$NEXTSTRAIN_BUILD_LOG" || exit_status=$?
+
+          mv .git/"$NEXTSTRAIN_BUILD_LOG" "$NEXTSTRAIN_BUILD_LOG"
 
           if [[ $exit_status == 0 ]]; then
             conclusion="success"
@@ -599,7 +605,10 @@ jobs:
               --aws-batch \
               --attach "$AWS_BATCH_JOB_ID" \
               --detach-on-interrupt \
-              "${download_args[@]}" . || exit_status=$?
+              "${download_args[@]}" . \
+            |& tee .git/"$NEXTSTRAIN_BUILD_LOG" || exit_status=$?
+
+          mv .git/"$NEXTSTRAIN_BUILD_LOG" "$NEXTSTRAIN_BUILD_LOG"
 
           if [[ $exit_status == 0 ]]; then
             conclusion="success"
@@ -687,7 +696,10 @@ jobs:
               --aws-batch \
               --attach "$AWS_BATCH_JOB_ID" \
               --detach-on-interrupt \
-              "${download_args[@]}" . || exit_status=$?
+              "${download_args[@]}" . \
+            |& tee .git/"$NEXTSTRAIN_BUILD_LOG" || exit_status=$?
+
+          mv .git/"$NEXTSTRAIN_BUILD_LOG" "$NEXTSTRAIN_BUILD_LOG"
 
           if [[ $exit_status == 0 ]]; then
             conclusion="success"
