@@ -142,11 +142,11 @@ on:
           The default paths included in the artifact are:
 
             build.log
-            auspice/
-            results/
             benchmarks/
             logs/
             .snakemake/log/
+            auspice/ (not included for `aws-batch` runtime)
+            results/ (not included for `aws-batch` runtime)
 
           The "build.log" contains log messages from the
           `nextstrain build` command.
@@ -187,11 +187,11 @@ env:
   NEXTSTRAIN_RUNTIME_ENVDIR: .git/nextstrain/env.d
   NEXTSTRAIN_DEFAULT_ARTIFACT_PATHS: |
     build.log
-    auspice/
-    results/
     benchmarks/
     logs/
     .snakemake/log/
+    ${{ inputs.runtime != 'aws-batch' && 'auspice/' || '' }}
+    ${{ inputs.runtime != 'aws-batch' && 'results/' || '' }}
 
 permissions:
   id-token: write

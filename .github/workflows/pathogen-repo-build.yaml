@@ -104,11 +104,11 @@ on:
 
 
             build.log
-            auspice/
-            results/
             benchmarks/
             logs/
             .snakemake/log/
+            auspice/ (not included for `aws-batch` runtime)
+            results/ (not included for `aws-batch` runtime)
 
           The "build.log" contains log messages from the `nextstrain build` command. The other paths are common output paths for Nextstrain builds. If a path does not exist in your build, then the action will still succeed and will print out a warning for the non-existent file(s). Use an exclude pattern for any of the default paths that you would like to exclude from the artifact (e.g. !build.log).
         type: string
@@ -208,11 +208,11 @@ on:
 
 
             build.log
-            auspice/
-            results/
             benchmarks/
             logs/
             .snakemake/log/
+            auspice/ (not included for `aws-batch` runtime)
+            results/ (not included for `aws-batch` runtime)
 
           The "build.log" contains log messages from the `nextstrain build` command. The other paths are common output paths for Nextstrain builds. If a path does not exist in your build, then the action will still succeed and will print out a warning for the non-existent file(s). Use an exclude pattern for any of the default paths that you would like to exclude from the artifact (e.g. !build.log).
         type: string
@@ -229,11 +229,11 @@ env:
   NEXTSTRAIN_RUNTIME_ENVDIR: .git/nextstrain/env.d
   NEXTSTRAIN_DEFAULT_ARTIFACT_PATHS: |
     build.log
-    auspice/
-    results/
     benchmarks/
     logs/
     .snakemake/log/
+    ${{ inputs.runtime != 'aws-batch' && 'auspice/' || '' }}
+    ${{ inputs.runtime != 'aws-batch' && 'results/' || '' }}
 permissions:
   id-token: write
 jobs:
