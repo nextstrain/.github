@@ -142,11 +142,11 @@ on:
           The default paths included in the artifact are:
 
             build.log
-            auspice/
-            results/
             benchmarks/
             logs/
             .snakemake/log/
+            auspice/ (not included for `aws-batch` runtime)
+            results/ (not included for `aws-batch` runtime)
 
           The "build.log" contains log messages from the
           `nextstrain build` command.
@@ -155,10 +155,6 @@ on:
           succeed and will print out a warning for the non-existent file(s).
           Use an exclude pattern for any of the default paths that you would like to
           exclude from the artifact (e.g. !build.log).
-
-          This is not supported for builds on AWS Batch because the workflow
-          detaches from the build. Please use the `nextstrain build` command
-          locally to reattach to AWS Batch builds to download outputs.
         type: string
         required: false
 
@@ -189,6 +185,13 @@ env:
   NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
   NEXTSTRAIN_BUILD_LOG: build.log
   NEXTSTRAIN_RUNTIME_ENVDIR: .git/nextstrain/env.d
+  NEXTSTRAIN_DEFAULT_ARTIFACT_PATHS: |
+    build.log
+    benchmarks/
+    logs/
+    .snakemake/log/
+    ${{ inputs.runtime != 'aws-batch' && 'auspice/' || '' }}
+    ${{ inputs.runtime != 'aws-batch' && 'results/' || '' }}
 
 permissions:
   id-token: write
@@ -329,18 +332,13 @@ jobs:
           "$NEXTSTRAIN_GITHUB_DIR"/bin/interpolate-env < "$NEXTSTRAIN_GITHUB_DIR"/text-templates/attach-aws-batch.md \
           > "$GITHUB_STEP_SUMMARY"
 
-      - if: always()
+      - if: ${{ always() && !env.AWS_BATCH_JOB_ID }}
         uses: actions/upload-artifact@v7
         with:
           if-no-files-found: warn
           name: ${{ inputs.artifact-name }}
           path: |
-            ${{ env.NEXTSTRAIN_BUILD_LOG }}
-            auspice/
-            results/
-            benchmarks/
-            logs/
-            .snakemake/log/
+            ${{ env.NEXTSTRAIN_DEFAULT_ARTIFACT_PATHS }}
             ${{ inputs.artifact-paths }}
 
     outputs:
@@ -366,6 +364,7 @@ jobs:
         name: Attach to AWS Batch job
         env:
           AWS_BATCH_JOB_ID: ${{ needs.run-build.outputs.AWS_BATCH_JOB_ID }}
+          ARTIFACT_PATHS: ${{ inputs.artifact-paths }}
         run: |
           # Using timeout to detach from build before we hit the job.timeout-minutes
           # to avoid cancelling the job in order to avoid a "Cancelled" status
@@ -373,13 +372,26 @@ jobs:
           # cleanly detaches from the build without cancelling it.²
           # ¹ <https://github.com/nextstrain/.github/issues/129#issuecomment-2956350306>
           # ² <https://github.com/nextstrain/.github/pull/134#discussion_r2325804695>
+
+          # Set download args for default and custom artifact paths, skipping
+          # blank lines. Append directories with ** to match files within.
+          download_args=()
+          while IFS= read -r line; do
+            [[ -z "$line" ]] && continue
+            [[ "$line" == */ ]] && line+='**'
+            download_args+=(--download "$line")
+          done <<< "${NEXTSTRAIN_DEFAULT_ARTIFACT_PATHS}${ARTIFACT_PATHS}"
+
           exit_status=0
           timeout --signal INT 359m \
             nextstrain build \
               --aws-batch \
               --attach "$AWS_BATCH_JOB_ID" \
               --detach-on-interrupt \
-              --no-download || exit_status=$?
+              "${download_args[@]}" . \
+            |& tee .git/"$NEXTSTRAIN_BUILD_LOG" || exit_status=$?
+
+          mv .git/"$NEXTSTRAIN_BUILD_LOG" "$NEXTSTRAIN_BUILD_LOG"
 
           if [[ $exit_status == 0 ]]; then
             conclusion="success"
@@ -395,6 +407,15 @@ jobs:
 
           echo "conclusion=$conclusion" | tee -a "$GITHUB_OUTPUT"
           exit $exit_status
+
+      - if: ${{ always() && steps.attach.outputs.conclusion != 'timeout' }}
+        uses: actions/upload-artifact@v7
+        with:
+          if-no-files-found: warn
+          name: ${{ inputs.artifact-name }}
+          path: |
+            ${{ env.NEXTSTRAIN_DEFAULT_ARTIFACT_PATHS }}
+            ${{ inputs.artifact-paths }}
 
     # Emit a "conclusion" output for the job that's based on the conclusion
     # (success, timeout, failure) of the "attach" step above.
