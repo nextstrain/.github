@@ -72,7 +72,7 @@ jobs:
 
       # Set up environment with Conda
       - if: inputs.environment-file != ''
-        uses: conda-incubator/setup-miniconda@v3
+        uses: conda-incubator/setup-miniconda@v4
         with:
           environment-file: ${{ inputs.environment-file }}
       - if: inputs.environment-file != ''
