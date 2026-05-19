@@ -310,13 +310,15 @@ jobs:
           # shellcheck disable=SC2154
           set -x
 
+          exit_status=0
           # tee build output to .git/ to avoid
           # https://github.com/nextstrain/.github/issues/77#issuecomment-1998652064
           # After build is complete, move .git/build.log to the working directory
           # so this is kept as an implementation detail
-          eval "$NEXTSTRAIN_BUILD_COMMAND" |& tee .git/"$NEXTSTRAIN_BUILD_LOG"
+          eval "$NEXTSTRAIN_BUILD_COMMAND" |& tee .git/"$NEXTSTRAIN_BUILD_LOG" || exit_status=$?
 
           mv .git/"$NEXTSTRAIN_BUILD_LOG" "$NEXTSTRAIN_BUILD_LOG"
+          exit $exit_status
 
       # Attempt to get the AWS Batch ID even if the run build command failed
       # as long as the runtime is `aws-batch` and the `NEXTSTRAIN_BUILD_LOG` file exists
