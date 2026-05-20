@@ -39,6 +39,13 @@ on:
         type: string
         default: html
 
+      run-linkcheck:
+        description: >-
+          Run linkcheck steps
+        type: boolean
+        default: true
+        required: false
+
 env:
   # Used for `make` steps.
   # -n: warn on missing references
@@ -88,10 +95,12 @@ jobs:
         working-directory: ${{ inputs.docs-directory }}
 
       # Ignore the exit code, results will be checked in the next step
-      - run: make linkcheck || true
+      - if: inputs.run-linkcheck
+        run: make linkcheck || true
         working-directory: ${{ inputs.docs-directory }}
 
-      - name: Check for broken links
+      - if: inputs.run-linkcheck
+        name: Check for broken links
         run: |
           broken_links=$(jq 'select(.status == "broken")' "$BUILDDIR/linkcheck/output.json")
           if [ -n "$broken_links" ]; then

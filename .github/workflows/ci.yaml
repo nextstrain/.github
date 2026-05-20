@@ -36,6 +36,7 @@ jobs:
       repo: nextstrain/docs.nextstrain.org
       docs-directory: .
       environment-file: conda.yml
+      run-linkcheck: false
 
   test-docs-ci-pip:
     uses: ./.github/workflows/docs-ci.yaml
@@ -43,6 +44,7 @@ jobs:
       repo: nextstrain/augur
       docs-directory: docs/
       pip-install-target: .[dev]
+      run-linkcheck: false
 
   test-pathogen-repo-build:
     permissions:
