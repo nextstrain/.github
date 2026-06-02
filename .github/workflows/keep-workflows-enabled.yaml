@@ -24,45 +24,50 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { repo: .github,         workflow: keep-workflows-enabled.yaml }
-          - { repo: augur,           workflow: ci.yaml }
-          - { repo: avian-flu,       workflow: ingest-to-phylogenetic-ncbi.yaml }
-          - { repo: chikv,           workflow: fetch-and-ingest.yaml }
-          - { repo: cli,             workflow: ci.yaml }
-          - { repo: cli,             workflow: standalone-installers.yaml }
-          - { repo: conda-base,      workflow: installation.yaml }
-          - { repo: dengue,          workflow: ingest-to-phylogenetic.yaml }
-          - { repo: ebola,           workflow: ci.yaml }
-          - { repo: ebola,           workflow: ingest-to-phylogenetic.yaml }
-          - { repo: forecasts-ncov,  workflow: run-usa-models.yaml }
-          - { repo: forecasts-ncov,  workflow: update-ncov-case-counts.yaml }
-          - { repo: hmpv,            workflow: ingest.yaml }
-          - { repo: lassa,           workflow: ci.yaml }
-          - { repo: lassa,           workflow: ingest-to-phylogenetic.yaml }
-          - { repo: measles,         workflow: ingest-to-phylogenetic.yaml }
-          - { repo: mpox,            workflow: fetch-and-ingest.yaml }
-          - { repo: mumps,           workflow: ingest.yaml }
-          - { repo: ncov,            workflow: rebuild-100k.yml }
-          - { repo: ncov-ingest,     workflow: fetch-and-ingest-genbank-master.yml }
-        # - { repo: nextclade_data,  workflow: update-sars-cov-2-datasets.yml }  intentionally disabled
-          - { repo: nextstrain.org,  workflow: index-resources.yml }
-          - { repo: nextstrain.org,  workflow: remind-to-promote.yml }
-          - { repo: nipah,           workflow: ci.yaml }
-          - { repo: nipah,           workflow: ingest.yaml }
-          - { repo: norovirus,       workflow: ingest.yaml }
-          - { repo: oropouche,       workflow: ingest.yaml }
-          - { repo: rabies,          workflow: ingest-to-phylogenetic.yaml }
-          - { repo: rsv,             workflow: fetch-and-ingest.yaml }
-          - { repo: rsv,             workflow: rebuild.yaml }
-          - { repo: rubella,         workflow: ingest.yaml }
-          - { repo: seasonal-cov,    workflow: ingest.yaml }
-          - { repo: seasonal-flu,    workflow: run-private-nextflu-builds.yaml }
-          - { repo: status,          workflow: ci.yaml }
-          - { repo: tb,              workflow: ingest-to-phylogenetic.yaml }
-          - { repo: WNV,             workflow: ci.yaml }
-          - { repo: WNV,             workflow: ingest-to-phylogenetic.yaml }
-          - { repo: yellow-fever,    workflow: ingest.yaml }
-          - { repo: zika,            workflow: ingest.yaml }
+          - { repo: .github,              workflow: keep-workflows-enabled.yaml }
+          - { repo: augur,                workflow: ci.yaml }
+          - { repo: augur,                workflow: docs.yaml }
+          - { repo: auspice,              workflow: docs.yaml }
+          - { repo: avian-flu,            workflow: ingest-to-phylogenetic-ncbi.yaml }
+          - { repo: chikv,                workflow: fetch-and-ingest.yaml }
+          - { repo: cli,                  workflow: ci.yaml }
+          - { repo: cli,                  workflow: docs.yaml }
+          - { repo: cli,                  workflow: standalone-installers.yaml }
+          - { repo: conda-base,           workflow: installation.yaml }
+          - { repo: dengue,               workflow: ingest-to-phylogenetic.yaml }
+          - { repo: docs.nextstrain.org,  workflow: ci.yaml }
+          - { repo: ebola,                workflow: ci.yaml }
+          - { repo: ebola,                workflow: ingest-to-phylogenetic.yaml }
+          - { repo: forecasts-ncov,       workflow: run-usa-models.yaml }
+          - { repo: forecasts-ncov,       workflow: update-ncov-case-counts.yaml }
+          - { repo: hmpv,                 workflow: ingest.yaml }
+          - { repo: lassa,                workflow: ci.yaml }
+          - { repo: lassa,                workflow: ingest-to-phylogenetic.yaml }
+          - { repo: measles,              workflow: ingest-to-phylogenetic.yaml }
+          - { repo: mpox,                 workflow: fetch-and-ingest.yaml }
+          - { repo: mumps,                workflow: ingest.yaml }
+          - { repo: ncov,                 workflow: docs.yaml }
+          - { repo: ncov,                 workflow: rebuild-100k.yml }
+          - { repo: ncov-ingest,          workflow: fetch-and-ingest-genbank-master.yml }
+        # - { repo: nextclade_data,       workflow: update-sars-cov-2-datasets.yml }  intentionally disabled
+          - { repo: nextstrain.org,       workflow: index-resources.yml }
+          - { repo: nextstrain.org,       workflow: remind-to-promote.yml }
+          - { repo: nipah,                workflow: ci.yaml }
+          - { repo: nipah,                workflow: ingest.yaml }
+          - { repo: norovirus,            workflow: ingest.yaml }
+          - { repo: oropouche,            workflow: ingest.yaml }
+          - { repo: rabies,               workflow: ingest-to-phylogenetic.yaml }
+          - { repo: rsv,                  workflow: fetch-and-ingest.yaml }
+          - { repo: rsv,                  workflow: rebuild.yaml }
+          - { repo: rubella,              workflow: ingest.yaml }
+          - { repo: seasonal-cov,         workflow: ingest.yaml }
+          - { repo: seasonal-flu,         workflow: run-private-nextflu-builds.yaml }
+          - { repo: status,               workflow: ci.yaml }
+          - { repo: tb,                   workflow: ingest-to-phylogenetic.yaml }
+          - { repo: WNV,                  workflow: ci.yaml }
+          - { repo: WNV,                  workflow: ingest-to-phylogenetic.yaml }
+          - { repo: yellow-fever,         workflow: ingest.yaml }
+          - { repo: zika,                 workflow: ingest.yaml }
 
     runs-on: ubuntu-latest
     steps:
