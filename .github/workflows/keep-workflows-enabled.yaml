@@ -36,7 +36,7 @@ jobs:
           - { repo: conda-base,           workflow: installation.yaml }
           - { repo: dengue,               workflow: ingest-to-phylogenetic.yaml }
           - { repo: docs.nextstrain.org,  workflow: ci.yaml }
-          - { repo: ebola,                workflow: ingest-to-phylogenetic.yaml }
+          - { repo: ebola,                workflow: ingest.yaml }
           - { repo: forecasts-ncov,       workflow: run-usa-models.yaml }
           - { repo: forecasts-ncov,       workflow: update-ncov-case-counts.yaml }
           - { repo: hantavirus,           workflow: ingest.yaml }
