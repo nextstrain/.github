@@ -8,8 +8,10 @@ name: Keep workflows enabled
 
 on:
   schedule:
-    # Scheduled to run at 4pm UTC (8am PST) on the first day of the month
-    - cron: '0 16 1 * *'
+    # Scheduled to run at 8:30am UTC (12:30am PST/1:30am PDT) on the first day
+    # of the month so it doesn't overlap with the automated workflows.
+    # <https://github.com/nextstrain/.github/issues/175>
+    - cron: '30 8 1 * *'
 
   workflow_dispatch:
 
