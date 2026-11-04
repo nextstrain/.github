@@ -33,6 +33,15 @@ inputs:
     default: ${{ runner.os == 'Linux' && 'docker' || runner.os == 'macOS' && 'conda' || '' }}
     required: false
 
+  retry:
+    # For <https://github.com/nextstrain/nextstrain.org/issues/1409>
+    description: >-
+      Number of times to retry failing Nextstrain CLI downloads.
+      Defaults to 3.
+    type: string
+    default: "3"
+    required: false
+
   # XXX TODO: Remove this in coordination with existing callers.  Callers must
   # stop specifying it before we remove it here in order to not break.  I've
   # audited all of our internal usages¹ of this action to check that they don't
@@ -58,16 +67,32 @@ runs:
   steps:
     - if: runner.os != 'Windows'
       run: |
-        curl -fsSL --proto '=https' https://nextstrain.org/cli/installer/"$OS" | bash
+        curl -fsSL --proto '=https' --connect-timeout 15 --retry "$RETRY" https://nextstrain.org/cli/installer/"$OS" | bash
       env:
+        RETRY: ${{ inputs.retry }}
         OS: ${{ runner.os == 'Linux' && 'linux' || runner.os == 'macOS' && 'mac' || '' }}
         VERSION: ${{ inputs.cli-version }}
         DESTINATION: ${{ runner.temp }}/nextstrain-cli
       shell: bash
 
     - if: runner.os == 'Windows'
-      run: Invoke-RestMethod https://nextstrain.org/cli/installer/windows | Invoke-Expression
+      # Invoke-RestMethod has no equivalent to curl's --retry, so use custom retry logic.
+      run: |
+        $retry = [int]$env:RETRY
+        for ($attempt = 0; ; $attempt++) {
+          try {
+            $installer = Invoke-RestMethod -ConnectionTimeoutSeconds 15 https://nextstrain.org/cli/installer/windows
+            break
+          } catch {
+            if ($attempt -ge $retry) {
+              throw
+            }
+            Start-Sleep -Seconds 5
+          }
+        }
+        $installer | Invoke-Expression
       env:
+        RETRY: ${{ inputs.retry }}
         VERSION: ${{ inputs.cli-version }}
         DESTINATION: ${{ runner.temp }}/nextstrain-cli
       shell: pwsh
