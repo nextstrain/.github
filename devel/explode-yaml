@@ -1,12 +1,12 @@
 #!/bin/bash
-# Explode YAML with anchors & references to YAML without them, using yq¹, for
-# GitHub Action's sake².
+# Explode YAML with anchors, references, & merge keys to YAML without them,
+# using yq¹, for GitHub Action's sake².
 #
 # ¹ <https://github.com/mikefarah/yq>
-# ² <https://github.com/actions/runner/issues/1182>
+# ² <https://github.com/orgs/community/discussions/185877>
 #
 set -euo pipefail
 
-docker run --rm --interactive mikefarah/yq '
+docker run --rm --interactive mikefarah/yq:4.54.3 '
     explode(.) head_comment="DO NOT EDIT - GENERATED\n\n" + head_comment
 '
