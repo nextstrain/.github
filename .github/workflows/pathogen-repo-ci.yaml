@@ -29,7 +29,6 @@ on:
         description: >-
           Additional environment variables to set before the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
 
-
             with:
               env: |
                 FOO: bar
@@ -46,7 +45,6 @@ on:
       runtimes:
         description: >-
           List of Nextstrain runtimes under which to run the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
-
 
             with:
               runtimes: |
@@ -85,7 +83,6 @@ on:
         description: >-
           Additional environment variables to set before the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
 
-
             with:
               env: |
                 FOO: bar
@@ -102,7 +99,6 @@ on:
       runtimes:
         description: >-
           List of Nextstrain runtimes under which to run the build, as a string containing YAML.  This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
-
 
             with:
               runtimes: |
@@ -249,12 +245,10 @@ jobs:
           # shellcheck disable=SC2154
 
           echo "$env" | yq --output-format json . | jq --raw-output '
-
               to_entries
             | map("\(.key)<<__EOF__\n\(.value)\n__EOF__")
             | join("\n")
           ' | tee -a "$GITHUB_ENV"
-
       - name: Checkout ${{ inputs.repo }}
         uses: actions/checkout@v7
         with:
@@ -272,11 +266,9 @@ jobs:
       - name: Verify nextstrain-pathogen.yaml file
         run: >
           if [[ ! -f nextstrain-pathogen.yaml ]]; then
-
             echo "To use this workflow, there must be a 'nextstrain-pathogen.yaml' file present in the repository root";
             exit 1;
           fi
-
       - name: Set up Nextstrain runtime ${{ matrix.runtime }}
         uses: ./.git/nextstrain/.github/actions/setup-nextstrain-cli
         with:

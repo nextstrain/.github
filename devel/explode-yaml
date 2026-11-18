@@ -7,6 +7,6 @@
 #
 set -euo pipefail
 
-docker run --rm --interactive mikefarah/yq '
+docker run --rm --interactive mikefarah/yq:4.54.3 '
     explode(.) head_comment="DO NOT EDIT - GENERATED\n\n" + head_comment
 '

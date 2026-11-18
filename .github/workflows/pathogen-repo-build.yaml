@@ -67,7 +67,6 @@ on:
 
           This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
 
-
             with:
               env: |
                 FOO: bar
@@ -93,7 +92,6 @@ on:
         description: >-
           List of paths to include in the build output artifact uploaded at the end of the workflow, as a string following the format of the `paths` input of the `actions/upload-artifact` action. For example:
 
-
             with:
               artifact-paths: |
                 results/
@@ -101,7 +99,6 @@ on:
                 logs/
 
           The default paths included in the artifact are:
-
 
             build.log
             benchmarks/
@@ -117,7 +114,6 @@ on:
       aws-batch-job-id:
         description: >-
           AWS Batch job id of the build if it was run with the `aws-batch` runtime. This can be used to re-attach to the AWS Batch job with:
-
 
             nextstrain build --aws-batch --attach <aws-batch-job-id>
 
@@ -171,7 +167,6 @@ on:
 
           This is easily produced, for example, by pretending you're writing normal nested YAML within a literal multi-line block scalar (introduced by "|"):
 
-
             with:
               env: |
                 FOO: bar
@@ -197,7 +192,6 @@ on:
         description: >-
           List of paths to include in the build output artifact uploaded at the end of the workflow, as a string following the format of the `paths` input of the `actions/upload-artifact` action. For example:
 
-
             with:
               artifact-paths: |
                 results/
@@ -205,7 +199,6 @@ on:
                 logs/
 
           The default paths included in the artifact are:
-
 
             build.log
             benchmarks/
@@ -270,7 +263,6 @@ jobs:
           # shellcheck disable=SC2154
 
           echo "$env" | "$NEXTSTRAIN_GITHUB_DIR"/bin/yaml-to-envvars | tee -a "$GITHUB_ENV"
-
       - name: Set secrets as environment variables
         env:
           secrets: ${{ toJson(secrets) }}
@@ -278,7 +270,6 @@ jobs:
           # shellcheck disable=SC2154
 
           echo "$secrets" | jq 'del(.github_token)' | "$NEXTSTRAIN_GITHUB_DIR"/bin/json-to-envvars | tee -a "$GITHUB_ENV"
-
       - id: role
         name: Set repo-specific role to (potentially) assume for runtime access to AWS
         env:
