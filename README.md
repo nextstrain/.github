@@ -35,7 +35,6 @@ Invoked by our GitHub Actions workflows, including the reusable workflows below.
   ([README](actions/setup-ssh/README.md))
 - [Setup debugger](actions/setup-debugger/action.yaml) for interactive debugging of workflow jobs
   ([README](actions/setup-debugger/README.md))
-- [Workflow context](actions/workflow-context/action.yaml)
 
 See also GitHub's [documentation on creating custom actions](https://docs.github.com/en/actions/creating-actions/about-custom-actions).
 
