@@ -124,19 +124,8 @@ jobs:
     outputs:
       runtimes: ${{ steps.inputs.outputs.runtimes }}
 
-  workflow-context:
-    permissions:
-      id-token: write
-    runs-on: ubuntu-latest
-    steps:
-      - id: workflow-context
-        uses: nextstrain/.github/actions/workflow-context@master
-    outputs:
-      repository: ${{ steps.workflow-context.outputs.repository }}
-      sha: ${{ steps.workflow-context.outputs.sha }}
-
   nextstrain-build:
-    needs: [configuration, workflow-context]
+    needs: [configuration]
     strategy:
       fail-fast: false
       matrix:
@@ -242,11 +231,11 @@ jobs:
       # Need to run this after the build repo is cloned so that cloning the
       # build repo does not overwrite the .git dir and remove the extra support files
       # that we need from nextstrain/.github repo
-      - name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
+      - name: Checkout ${{ job.workflow_repository }} (sha ${{ job.workflow_sha }})
         uses: actions/checkout@v7
         with:
-          repository: ${{ needs.workflow-context.outputs.repository }}
-          ref: ${{ needs.workflow-context.outputs.sha }}
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
 
       - name: Verify nextstrain-pathogen.yaml file
