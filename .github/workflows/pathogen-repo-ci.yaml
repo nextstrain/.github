@@ -135,8 +135,6 @@ on:
         required: true
 permissions:
   contents: read
-  id-token: write
-  packages: read
 env:
   NEXTSTRAIN_GITHUB_DIR: .git/nextstrain/.github
 jobs:
@@ -153,6 +151,8 @@ jobs:
     outputs:
       runtimes: ${{ steps.inputs.outputs.runtimes }}
   workflow-context:
+    permissions:
+      id-token: write
     runs-on: ubuntu-latest
     steps:
       - id: workflow-context
@@ -167,6 +167,9 @@ jobs:
       matrix:
         runtime: ${{ fromJSON(needs.configuration.outputs.runtimes) }}
     name: build (${{ matrix.runtime }})
+    permissions:
+      contents: read
+      packages: read
     runs-on: ubuntu-latest
     continue-on-error: ${{ inputs.continue-on-error }}
     steps:
