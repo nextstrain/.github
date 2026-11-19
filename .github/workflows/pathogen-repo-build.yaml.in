@@ -197,17 +197,7 @@ permissions:
   id-token: write
 
 jobs:
-  workflow-context:
-    runs-on: ubuntu-latest
-    steps:
-      - id: workflow-context
-        uses: nextstrain/.github/actions/workflow-context@master
-    outputs:
-      repository: ${{ steps.workflow-context.outputs.repository }}
-      sha: ${{ steps.workflow-context.outputs.sha }}
-
   run-build:
-    needs: workflow-context
     runs-on: ubuntu-latest
     steps:
       - name: Checkout build repository
@@ -219,11 +209,11 @@ jobs:
       # build repo does not overwrite the .git dir and remove the extra support files
       # that we need from nextstrain/.github repo
       - &checkout-workflow-support
-        name: Checkout ${{ needs.workflow-context.outputs.repository }} (sha ${{ needs.workflow-context.outputs.sha }})
+        name: Checkout ${{ job.workflow_repository }} (sha ${{ job.workflow_sha }})
         uses: actions/checkout@v7
         with:
-          repository: ${{ needs.workflow-context.outputs.repository }}
-          ref: ${{ needs.workflow-context.outputs.sha }}
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
           path: ${{ env.NEXTSTRAIN_GITHUB_DIR }}
 
       - if: inputs.env
@@ -352,12 +342,11 @@ jobs:
   # ¹ <https://docs.github.com/en/actions/learn-github-actions/usage-limits-billing-and-administration#usage-limits>
   #   <https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idtimeout-minutes>
   wait-1: &wait
-    needs: [run-build, workflow-context]
+    needs: [run-build]
     if: needs.run-build.outputs.AWS_BATCH_JOB_ID
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
-      # Uses needs.workflow-context.outputs
       - *checkout-workflow-support
       - *setup-aws-batch-credentials
       - *setup-runtime
@@ -429,19 +418,19 @@ jobs:
   # timed out while attached to the AWS Batch job.
   wait-2:
     <<: *wait
-    needs: [wait-1, run-build, workflow-context]
+    needs: [wait-1, run-build]
     if: ${{ needs.wait-1.outputs.attach-step-conclusion == 'timeout' }}
 
   # 12–18 hours
   wait-3:
     <<: *wait
-    needs: [wait-2, run-build, workflow-context]
+    needs: [wait-2, run-build]
     if: ${{ needs.wait-2.outputs.attach-step-conclusion == 'timeout' }}
 
   # 18–24 hours
   wait-4:
     <<: *wait
-    needs: [wait-3, run-build, workflow-context]
+    needs: [wait-3, run-build]
     if: ${{ needs.wait-3.outputs.attach-step-conclusion == 'timeout' }}
 
   # XXX TODO: Jobs can fall off the end of our wait-N chain and appear to be
@@ -455,11 +444,10 @@ jobs:
   # skipped immediately after run-build.  It needs to be at the end of the
   # chain.
   cancellation:
-    needs: [wait-4, run-build, workflow-context]
+    needs: [wait-4, run-build]
     if: cancelled()
     runs-on: ubuntu-latest
     steps:
-      # Uses needs.workflow-context.outputs
       - *checkout-workflow-support
       - *setup-aws-batch-credentials
       - *setup-runtime
